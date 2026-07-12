@@ -17,20 +17,41 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    outputs:
+      configured: ${{ steps.secrets.outputs.configured }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - name: Check eBay API configuration
+        id: secrets
+        shell: bash
+        env:
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+          EBAY_REFRESH_TOKEN: ${{ secrets.EBAY_REFRESH_TOKEN }}
+        run: |
+          if [[ -n "$EBAY_CLIENT_ID" && -n "$EBAY_CLIENT_SECRET" && -n "$EBAY_REFRESH_TOKEN" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "eBay refresh skipped: add EBAY_CLIENT_ID, EBAY_CLIENT_SECRET, and EBAY_REFRESH_TOKEN as repository secrets."
+          fi
+      - uses: actions/checkout@v6
+        if: steps.secrets.outputs.configured == 'true'
+      - uses: actions/setup-python@v6
+        if: steps.secrets.outputs.configured == 'true'
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt
+      - if: steps.secrets.outputs.configured == 'true'
+        run: pip install -r requirements.txt
       - name: Fetch recent eBay orders into private workspace
+        if: steps.secrets.outputs.configured == 'true'
         env:
           EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
           EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
           EBAY_REFRESH_TOKEN: ${{ secrets.EBAY_REFRESH_TOKEN }}
         run: python scripts/sync_ebay.py
       - name: Build generalized public dataset
+        if: steps.secrets.outputs.configured == 'true'
         env:
           GEOCODER_EMAIL: ${{ secrets.GEOCODER_EMAIL }}
         run: >-
@@ -38,8 +59,10 @@ jobs:
           --input private/ebay_api_orders.json
           --existing public/data/shipments.json
       - name: Verify privacy boundary and pipeline
+        if: steps.secrets.outputs.configured == 'true'
         run: pytest -q
       - name: Commit safe outputs when changed
+        if: steps.secrets.outputs.configured == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -47,13 +70,16 @@ jobs:
           git diff --cached --quiet || git commit -m "data: refresh generalized shipment map"
           git push
       - name: Configure GitHub Pages
+        if: steps.secrets.outputs.configured == 'true'
         uses: actions/configure-pages@v5
       - name: Upload refreshed site
+        if: steps.secrets.outputs.configured == 'true'
         uses: actions/upload-pages-artifact@v4
         with:
           path: public
 
   deploy:
+    if: needs.refresh.outputs.configured == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

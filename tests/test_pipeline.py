@@ -115,3 +115,5 @@ def test_pages_workflows_deploy_both_pushes_and_scheduled_refreshes():
         assert "id-token: write" in workflow
     assert 'cron: "17 */6 * * *"' in refresh
     assert "EBAY_REFRESH_TOKEN" in refresh
+    assert "configured: ${{ steps.secrets.outputs.configured }}" in refresh
+    assert "if: needs.refresh.outputs.configured == 'true'" in refresh
