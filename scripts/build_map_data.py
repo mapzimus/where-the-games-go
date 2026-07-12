@@ -1,0 +1,366 @@
+#!/usr/bin/env python3
+"""Turn private eBay records into a public, city-level shipment dataset.
+
+Privacy boundary: this module reads private order fields, but its writer permits only
+the explicitly allow-listed public schema defined in PUBLIC_PACKAGE_KEYS.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import hashlib
+import json
+import math
+import os
+import re
+import sys
+import time
+from collections import Counter, defaultdict
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Iterable
+
+import requests
+
+PUBLIC_PACKAGE_KEYS = {
+    "id", "city", "region", "country", "lat", "lng", "month",
+    "distanceMiles", "gameCount", "titles",
+}
+FORBIDDEN_OUTPUT_TERMS = {
+    "buyer", "address", "email", "phone", "zip", "postal", "tracking",
+    "order", "username", "transaction", "tax", "payment",
+}
+COUNTRY_CODES = {
+    "us": ("US", "United States"), "usa": ("US", "United States"),
+    "united states": ("US", "United States"), "united states of america": ("US", "United States"),
+    "pr": ("PR", "Puerto Rico"), "puerto rico": ("PR", "Puerto Rico"),
+    "ca": ("CA", "Canada"), "canada": ("CA", "Canada"),
+}
+
+
+@dataclass
+class LineItem:
+    private_order_key: str
+    city: str
+    region: str
+    country_code: str
+    country_name: str
+    month: str
+    title: str
+    quantity: int = 1
+
+
+@dataclass
+class Package:
+    city: str
+    region: str
+    country_code: str
+    country_name: str
+    month: str
+    titles: list[str] = field(default_factory=list)
+    game_count: int = 0
+
+
+def clean(value: object) -> str:
+    return re.sub(r"\s+", " ", str(value or "")).strip()
+
+
+def country(value: object) -> tuple[str, str]:
+    raw = clean(value)
+    return COUNTRY_CODES.get(raw.casefold(), (raw.upper()[:2], raw or "Unknown"))
+
+
+def month_of(value: object) -> str:
+    raw = clean(value)
+    if not raw:
+        return "Unknown"
+    iso = re.match(r"(\d{4})-(\d{2})", raw)
+    if iso:
+        return f"{iso.group(1)}-{iso.group(2)}"
+    for fmt in ("%b-%d-%y", "%b-%d-%Y", "%m/%d/%Y", "%m/%d/%y", "%d-%b-%y"):
+        try:
+            return datetime.strptime(raw.split(" ")[0], fmt).strftime("%Y-%m")
+        except ValueError:
+            pass
+    return "Unknown"
+
+
+def quantity_of(value: object) -> int:
+    try:
+        return max(1, int(float(clean(value) or "1")))
+    except ValueError:
+        return 1
+
+
+def read_ebay_csv(path: Path) -> list[LineItem]:
+    with path.open(encoding="utf-8-sig", errors="replace", newline="") as handle:
+        rows = list(csv.reader(handle))
+    header_index = next(
+        (i for i, row in enumerate(rows[:30]) if "Order Number" in row and "Ship To City" in row),
+        None,
+    )
+    if header_index is None:
+        raise ValueError(f"Could not find the eBay order header in {path}")
+
+    header = rows[header_index]
+    result: list[LineItem] = []
+    for index, values in enumerate(rows[header_index + 1:], start=1):
+        row = dict(zip(header, values))
+        city = clean(row.get("Ship To City"))
+        region = clean(row.get("Ship To State"))
+        title = clean(row.get("Item Title"))
+        if not city or not region or not title:
+            continue
+        code, name = country(row.get("Ship To Country"))
+        order_key = clean(row.get("Order Number") or row.get("Sales Record Number"))
+        if not order_key:
+            order_key = f"csv-row-{index}"
+        result.append(LineItem(
+            private_order_key=order_key,
+            city=city,
+            region=region,
+            country_code=code,
+            country_name=name,
+            month=month_of(row.get("Sale Date") or row.get("Paid On Date")),
+            title=title,
+            quantity=quantity_of(row.get("Quantity")),
+        ))
+    return result
+
+
+def _shipping_address(order: dict) -> dict:
+    instructions = order.get("fulfillmentStartInstructions") or []
+    for instruction in instructions:
+        ship_to = ((instruction.get("shippingStep") or {}).get("shipTo") or {})
+        if ship_to:
+            # The current Fulfillment API wraps Address in ExtendedContact.
+            # Retaining the direct fallback also accepts older saved fixtures.
+            return ship_to.get("contactAddress") or ship_to
+    return {}
+
+
+def read_ebay_api_json(path: Path) -> list[LineItem]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    orders = payload.get("orders", payload if isinstance(payload, list) else [])
+    result: list[LineItem] = []
+    for index, order in enumerate(orders):
+        address = _shipping_address(order)
+        city = clean(address.get("city"))
+        region = clean(address.get("stateOrProvince"))
+        code, name = country(address.get("countryCode"))
+        if not city or not region:
+            continue
+        order_key = clean(order.get("orderId")) or f"api-row-{index}"
+        for item in order.get("lineItems") or []:
+            title = clean(item.get("title") or item.get("lineItemId") or "Game")
+            result.append(LineItem(
+                private_order_key=order_key,
+                city=city,
+                region=region,
+                country_code=code,
+                country_name=name,
+                month=month_of(order.get("creationDate")),
+                title=title,
+                quantity=quantity_of(item.get("quantity")),
+            ))
+    return result
+
+
+def load_line_items(paths: Iterable[Path]) -> list[LineItem]:
+    items: list[LineItem] = []
+    for path in paths:
+        if path.suffix.casefold() == ".csv":
+            items.extend(read_ebay_csv(path))
+        elif path.suffix.casefold() == ".json":
+            items.extend(read_ebay_api_json(path))
+        else:
+            raise ValueError(f"Unsupported input type: {path}")
+    return items
+
+
+def group_packages(items: Iterable[LineItem]) -> list[Package]:
+    grouped: dict[str, Package] = {}
+    seen_lines: set[tuple] = set()
+    for item in items:
+        line_key = (
+            item.private_order_key, item.city.casefold(), item.region.casefold(),
+            item.country_code, item.month, item.title.casefold(), item.quantity,
+        )
+        if line_key in seen_lines:
+            continue
+        seen_lines.add(line_key)
+        package = grouped.setdefault(item.private_order_key, Package(
+            city=item.city, region=item.region, country_code=item.country_code,
+            country_name=item.country_name, month=item.month,
+        ))
+        package.titles.extend([item.title] * item.quantity)
+        package.game_count += item.quantity
+    return list(grouped.values())
+
+
+class CityResolver:
+    def __init__(self, cache_path: Path, offline: bool = False, delay: float = 1.05):
+        self.cache_path = cache_path
+        self.offline = offline
+        self.delay = delay
+        self.session = requests.Session()
+        self.requests_made = 0
+        self.session.headers["User-Agent"] = os.getenv(
+            "GEOCODER_USER_AGENT", "where-the-games-go/1.0 (personal portfolio map)"
+        )
+        self.cache: dict[str, dict] = {}
+        if cache_path.exists():
+            self.cache = json.loads(cache_path.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def key(city: str, region: str, country_code: str) -> str:
+        return "|".join((clean(city).casefold(), clean(region).casefold(), clean(country_code).upper()))
+
+    def resolve(self, city: str, region: str, country_code: str) -> tuple[float, float] | None:
+        key = self.key(city, region, country_code)
+        cached = self.cache.get(key)
+        if cached:
+            return float(cached["lat"]), float(cached["lng"])
+        if self.offline:
+            return None
+        self.requests_made += 1
+        if self.requests_made == 1 or self.requests_made % 25 == 0:
+            print(f"Geocoding city {self.requests_made}: {city}, {region}", flush=True)
+        params = {"format": "jsonv2", "q": f"{city}, {region}, {country_code}", "limit": 1}
+        email = os.getenv("GEOCODER_EMAIL")
+        if email:
+            params["email"] = email
+        response = self.session.get("https://nominatim.openstreetmap.org/search", params=params, timeout=30)
+        response.raise_for_status()
+        results = response.json()
+        time.sleep(self.delay)
+        if not results:
+            self.cache[key] = {"missing": True}
+            self.save()
+            return None
+        coords = {"lat": round(float(results[0]["lat"]), 5), "lng": round(float(results[0]["lon"]), 5)}
+        self.cache[key] = coords
+        self.save()
+        return coords["lat"], coords["lng"]
+
+    def save(self) -> None:
+        self.cache_path.parent.mkdir(parents=True, exist_ok=True)
+        self.cache_path.write_text(json.dumps(self.cache, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+
+
+def haversine_miles(a: tuple[float, float], b: tuple[float, float]) -> int:
+    lat1, lon1, lat2, lon2 = map(math.radians, (*a, *b))
+    dlat, dlon = lat2 - lat1, lon2 - lon1
+    h = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return round(3958.7613 * 2 * math.asin(math.sqrt(h)))
+
+
+def safe_fingerprint(record: dict) -> str:
+    safe = "|".join([
+        record["city"].casefold(), record["region"].casefold(), record["country"].casefold(),
+        record["month"], *sorted(title.casefold() for title in record["titles"]),
+    ])
+    return hashlib.sha256(safe.encode("utf-8")).hexdigest()[:12]
+
+
+def public_records(packages: Iterable[Package], resolver: CityResolver, origin: tuple[float, float]) -> list[dict]:
+    staged: list[dict] = []
+    for package in packages:
+        coords = resolver.resolve(package.city, package.region, package.country_code)
+        if not coords:
+            print(f"Skipping unresolved city: {package.city}, {package.region}, {package.country_code}", file=sys.stderr)
+            continue
+        staged.append({
+            "city": package.city,
+            "region": package.region,
+            "country": package.country_name,
+            "lat": coords[0],
+            "lng": coords[1],
+            "month": package.month,
+            "distanceMiles": haversine_miles(origin, coords),
+            "gameCount": package.game_count,
+            "titles": sorted(package.titles, key=str.casefold),
+        })
+
+    occurrences: Counter[str] = Counter()
+    for record in sorted(staged, key=lambda x: (x["month"], x["city"], x["titles"])):
+        base = safe_fingerprint(record)
+        occurrences[base] += 1
+        record["id"] = f"journey-{base}-{occurrences[base]}"
+    return staged
+
+
+def merge_existing(new: list[dict], existing_path: Path | None) -> list[dict]:
+    if not existing_path or not existing_path.exists():
+        return new
+    existing = json.loads(existing_path.read_text(encoding="utf-8")).get("packages", [])
+    merged = {record["id"]: record for record in existing}
+    merged.update({record["id"]: record for record in new})
+    return list(merged.values())
+
+
+def validate_public(records: list[dict]) -> None:
+    for record in records:
+        keys = set(record)
+        if keys != PUBLIC_PACKAGE_KEYS:
+            raise ValueError(f"Public package schema violation: {sorted(keys ^ PUBLIC_PACKAGE_KEYS)}")
+        for key in keys:
+            if any(term in key.casefold() for term in FORBIDDEN_OUTPUT_TERMS):
+                raise ValueError(f"Forbidden public field: {key}")
+
+
+def build_payload(records: list[dict], origin_name: str, origin: tuple[float, float]) -> dict:
+    records.sort(key=lambda x: (x["month"], x["city"], x["id"]))
+    return {
+        "schemaVersion": 1,
+        "generatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "origin": {"name": origin_name, "lat": origin[0], "lng": origin[1]},
+        "summary": {
+            "packages": len(records),
+            "games": sum(record["gameCount"] for record in records),
+            "miles": sum(record["distanceMiles"] for record in records),
+            "regions": len({(record["country"], record["region"]) for record in records}),
+        },
+        "packages": records,
+    }
+
+
+def parse_origin(value: str) -> tuple[str, str, str]:
+    parts = [part.strip() for part in value.split(",")]
+    if len(parts) < 3:
+        raise ValueError("Origin must be 'City, State/Region, Country'")
+    return parts[0], parts[1], ",".join(parts[2:]).strip()
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--input", action="append", required=True, type=Path, help="Private eBay CSV or API JSON; repeatable")
+    parser.add_argument("--output", type=Path, default=Path("public/data/shipments.json"))
+    parser.add_argument("--cache", type=Path, default=Path("data/city-cache.json"))
+    parser.add_argument("--existing", type=Path, help="Existing public dataset to merge for rolling API updates")
+    parser.add_argument("--origin", default="Salem, Massachusetts, United States")
+    parser.add_argument("--offline", action="store_true", help="Use cached geocodes only")
+    args = parser.parse_args()
+
+    origin_city, origin_region, origin_country = parse_origin(args.origin)
+    origin_code, _ = country(origin_country)
+    resolver = CityResolver(args.cache, offline=args.offline)
+    origin = resolver.resolve(origin_city, origin_region, origin_code)
+    if not origin:
+        raise SystemExit("Origin could not be geocoded; run once online to populate the cache.")
+
+    items = load_line_items(args.input)
+    records = public_records(group_packages(items), resolver, origin)
+    records = merge_existing(records, args.existing)
+    validate_public(records)
+    payload = build_payload(records, f"{origin_city}, {origin_region}", origin)
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    args.output.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"Published {payload['summary']['packages']} packages / {payload['summary']['games']} games to {args.output}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
