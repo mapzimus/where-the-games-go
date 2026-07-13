@@ -1,13 +1,14 @@
-# Where the Games Go
+# Where My Ebay Packages Have Travelled
 
-An interactive, privacy-safe flow map of a personal eBay game-reselling history. It turns a private seller export into a public portfolio story: package destinations at city/town level, approximate straight-line distance from Salem, Massachusetts, and the games that found a new shelf.
+An interactive map built from real sales data from North Shore Nostalgia, my eBay business. I have been selling games for a few years, and this project turns that history into a public portfolio story: where packages went, how far the games travelled from Salem, Massachusetts, and how a small used-game shop reaches across the map.
 
-![Where the Games Go portfolio preview](public/social-preview.png)
+![Where My Ebay Packages Have Travelled portfolio preview](public/social-preview.png)
 
 ## What makes this portfolio-ready
 
 - A designed, responsive Leaflet experience rather than a default pin map
 - Package and game counts, combined distance, regional reach, search, and time/place filters
+- Real generalized sales data from North Shore Nostalgia
 - One package per eBay order, with multi-item orders grouped correctly
 - City-centroid geocoding and approximate great-circle distance calculations
 - A hard privacy boundary enforced in code and tests
