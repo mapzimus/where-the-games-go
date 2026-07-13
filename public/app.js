@@ -12,6 +12,52 @@ let dataset;
 
 const el = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
+const stateNames = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
+  HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+  NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina",
+  SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+  DC: "District of Columbia", PR: "Puerto Rico", GU: "Guam", VI: "U.S. Virgin Islands", AS: "American Samoa", MP: "Northern Mariana Islands"
+};
+
+function topGroup(items, keyFor) {
+  const groups = new Map();
+  items.forEach(item => {
+    const { key, label } = keyFor(item);
+    const current = groups.get(key) || { label, count: 0 };
+    current.count += 1;
+    groups.set(key, current);
+  });
+  return [...groups.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))[0];
+}
+
+function formatMonth(month) {
+  if (!month) return "—";
+  return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}-01T00:00:00Z`));
+}
+
+function titleCase(value) {
+  return value.replace(/\b\w/g, character => character.toUpperCase());
+}
+
+function renderRecords(packages) {
+  const biggestMonth = topGroup(packages, pkg => ({ key: pkg.month, label: pkg.month }));
+  const topState = topGroup(packages.filter(pkg => pkg.country === "United States"), pkg => ({ key: pkg.region.toUpperCase(), label: stateNames[pkg.region.toUpperCase()] || pkg.region }));
+  const topCity = topGroup(packages, pkg => ({
+    key: `${pkg.city.toLocaleLowerCase()}|${pkg.region.toLocaleLowerCase()}|${pkg.country.toLocaleLowerCase()}`,
+    label: `${titleCase(pkg.city)}, ${pkg.region}`
+  }));
+  const averageMiles = packages.length ? Math.round(packages.reduce((total, pkg) => total + pkg.distanceMiles, 0) / packages.length) : null;
+
+  el("record-month").textContent = biggestMonth ? formatMonth(biggestMonth.label) : "—";
+  el("record-month-detail").textContent = biggestMonth ? `${fmt.format(biggestMonth.count)} packages` : "No matching packages";
+  el("record-state").textContent = topState?.label || "—";
+  el("record-state-detail").textContent = topState ? `${fmt.format(topState.count)} packages` : "No matching U.S. packages";
+  el("record-city").textContent = topCity?.label || "—";
+  el("record-city-detail").textContent = topCity ? `${fmt.format(topCity.count)} packages` : "No matching packages";
+  el("record-average").textContent = averageMiles === null ? "—" : `${fmt.format(averageMiles)} mi`;
+}
 
 function curvedRoute(origin, destination) {
   const [aLat, aLng] = origin;
@@ -73,6 +119,7 @@ function render(packages) {
   el("stat-miles").textContent = fmt.format(Math.round(miles));
   el("stat-regions").textContent = fmt.format(regions);
   el("empty-state").hidden = packages.length > 0;
+  renderRecords(packages);
 
   const farthest = [...packages].sort((a, b) => b.distanceMiles - a.distanceMiles)[0];
   el("farthest-distance").textContent = farthest ? `${fmt.format(farthest.distanceMiles)} mi` : "— mi";

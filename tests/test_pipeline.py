@@ -129,3 +129,13 @@ def test_north_shore_nostalgia_store_link_is_present():
     html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
     assert 'href="https://ebay.us/m/Wg29dT"' in html
     assert 'rel="noopener"' in html
+
+
+def test_dashboard_includes_filter_aware_sales_records():
+    html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
+    javascript = (ROOT / "public" / "app.js").read_text(encoding="utf-8")
+    for record_id in ("record-month", "record-state", "record-city", "record-average"):
+        assert f'id="{record_id}"' in html
+    assert "function renderRecords(packages)" in javascript
+    assert "renderRecords(packages);" in javascript
+    assert 'California' in javascript
