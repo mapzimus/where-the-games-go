@@ -123,3 +123,9 @@ def test_leaflet_stylesheet_uses_the_pinned_distribution_hash():
     html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
     assert 'href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"' in html
     assert 'integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="' in html
+
+
+def test_north_shore_nostalgia_store_link_is_present():
+    html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
+    assert 'href="https://ebay.us/m/Wg29dT"' in html
+    assert 'rel="noopener"' in html

@@ -66,6 +66,8 @@ button:hover { border-color: var(--lime); }
 .story-grid article:first-child { padding-left: 0; border-right: 1px solid var(--line); }
 .farthest-card .distance { font: 600 clamp(4rem, 8vw, 8rem)/.9 "Space Grotesk", sans-serif; color: var(--coral); letter-spacing: -.07em; margin: 2rem 0; }
 .farthest-card > p:last-child, .method-card > p { color: var(--muted); line-height: 1.7; max-width: 680px; }
+.store-link { display: inline-flex; align-items: center; min-height: 42px; margin-top: 1.3rem; padding: 0 .95rem; border: 1px solid #4a5054; border-radius: 3px; color: var(--lime); font-weight: 700; text-decoration: none; }
+.store-link:hover { border-color: var(--lime); background: rgba(214,255,84,.08); }
 .method-tags { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: 2rem; }
 .method-tags span { border: 1px solid #4a5054; padding: .55rem .75rem; color: #cac8c1; font-size: .75rem; }
 footer { display: flex; justify-content: space-between; gap: 2rem; padding: 2rem 0 4rem; color: var(--muted); font-size: .72rem; }
