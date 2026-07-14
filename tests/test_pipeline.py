@@ -134,11 +134,17 @@ def test_north_shore_nostalgia_store_link_is_present():
 def test_dashboard_includes_filter_aware_sales_records():
     html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
     javascript = (ROOT / "public" / "app.js").read_text(encoding="utf-8")
-    for record_id in ("record-month", "record-state", "record-city", "record-average"):
+    for record_id in ("record-month", "record-year", "record-state", "record-city", "record-average", "record-median", "record-repeat", "record-longhaul"):
         assert f'id="{record_id}"' in html
+    assert 'id="stat-cities"' in html
+    assert 'id="stat-games"' not in html
+    assert 'id="play-timeline"' in html
     assert "function renderRecords(packages)" in javascript
     assert "renderRecords(packages);" in javascript
+    assert "function toggleTimeline()" in javascript
+    assert "window.setInterval(advanceTimeline, interval)" in javascript
+    assert "timelineCumulative ? pkg.month <= month" in javascript
     assert 'California' in javascript
-    assert 'href="styles.css?v=stats-1"' in html
-    assert 'src="app.js?v=stats-2"' in html
+    assert 'href="styles.css?v=stats-2"' in html
+    assert 'src="app.js?v=stats-3"' in html
     assert 'fetch("data/shipments.json", { cache: "no-store" })' in javascript

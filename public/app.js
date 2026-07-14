@@ -9,6 +9,10 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 const routeLayer = L.layerGroup().addTo(map);
 const pointLayer = L.layerGroup().addTo(map);
 let dataset;
+let timelineTimer = null;
+let timelineMonths = [];
+let timelineIndex = -1;
+let timelineCumulative = false;
 
 const el = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
@@ -41,22 +45,44 @@ function titleCase(value) {
   return value.replace(/\b\w/g, character => character.toUpperCase());
 }
 
+function cityKey(pkg) {
+  return `${pkg.city.toLocaleLowerCase()}|${pkg.region.toLocaleLowerCase()}|${pkg.country.toLocaleLowerCase()}`;
+}
+
+function median(values) {
+  if (!values.length) return null;
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return Math.round(sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2);
+}
+
 function renderRecords(packages) {
   const biggestMonth = topGroup(packages, pkg => ({ key: pkg.month, label: pkg.month }));
+  const biggestYear = topGroup(packages, pkg => ({ key: pkg.month.slice(0, 4), label: pkg.month.slice(0, 4) }));
   const topState = topGroup(packages.filter(pkg => pkg.country === "United States"), pkg => ({ key: pkg.region.toUpperCase(), label: stateNames[pkg.region.toUpperCase()] || pkg.region }));
   const topCity = topGroup(packages, pkg => ({
-    key: `${pkg.city.toLocaleLowerCase()}|${pkg.region.toLocaleLowerCase()}|${pkg.country.toLocaleLowerCase()}`,
+    key: cityKey(pkg),
     label: `${titleCase(pkg.city)}, ${pkg.region}`
   }));
   const averageMiles = packages.length ? Math.round(packages.reduce((total, pkg) => total + pkg.distanceMiles, 0) / packages.length) : null;
+  const medianMiles = median(packages.map(pkg => pkg.distanceMiles));
+  const cityCounts = new Map();
+  packages.forEach(pkg => cityCounts.set(cityKey(pkg), (cityCounts.get(cityKey(pkg)) || 0) + 1));
+  const repeatDestinations = [...cityCounts.values()].filter(count => count > 1).length;
+  const longHaulTrips = packages.filter(pkg => pkg.distanceMiles >= 2000).length;
 
   el("record-month").textContent = biggestMonth ? formatMonth(biggestMonth.label) : "—";
   el("record-month-detail").textContent = biggestMonth ? `${fmt.format(biggestMonth.count)} packages` : "No matching packages";
+  el("record-year").textContent = biggestYear?.label || "—";
+  el("record-year-detail").textContent = biggestYear ? `${fmt.format(biggestYear.count)} packages` : "No matching packages";
   el("record-state").textContent = topState?.label || "—";
   el("record-state-detail").textContent = topState ? `${fmt.format(topState.count)} packages` : "No matching U.S. packages";
   el("record-city").textContent = topCity?.label || "—";
   el("record-city-detail").textContent = topCity ? `${fmt.format(topCity.count)} packages` : "No matching packages";
   el("record-average").textContent = averageMiles === null ? "—" : `${fmt.format(averageMiles)} mi`;
+  el("record-median").textContent = medianMiles === null ? "—" : `${fmt.format(medianMiles)} mi`;
+  el("record-repeat").textContent = fmt.format(repeatDestinations);
+  el("record-longhaul").textContent = fmt.format(longHaulTrips);
 }
 
 function curvedRoute(origin, destination) {
@@ -103,7 +129,7 @@ function render(packages) {
     const marker = L.circleMarker([first.lat, first.lng], {
       radius, color: "#111315", weight: 1.5, fillColor: "#ff735c", fillOpacity: .86
     });
-    marker.bindPopup(items.length === 1 ? popup(first) : `<div class="popup-place">${escapeHtml(first.city)}, ${escapeHtml(first.region)}</div><div class="popup-title">${items.length} packages · ${items.reduce((n, x) => n + x.gameCount, 0)} games</div><div class="popup-meta">Select filters to narrow this destination.</div>`);
+    marker.bindPopup(items.length === 1 ? popup(first) : `<div class="popup-place">${escapeHtml(first.city)}, ${escapeHtml(first.region)}</div><div class="popup-title">${items.length} packages to this city</div><div class="popup-meta">Select filters to narrow this destination.</div>`);
     marker.addTo(pointLayer);
   });
 
@@ -111,11 +137,11 @@ function render(packages) {
     .bindPopup(`<div class="popup-place">Journey origin</div><div class="popup-title">${escapeHtml(dataset.origin.name)}</div>`)
     .addTo(pointLayer);
 
-  const games = packages.reduce((n, pkg) => n + pkg.gameCount, 0);
   const miles = packages.reduce((n, pkg) => n + pkg.distanceMiles, 0);
   const regions = new Set(packages.map(pkg => `${pkg.country}|${pkg.region}`)).size;
+  const cities = new Set(packages.map(cityKey)).size;
   el("stat-packages").textContent = fmt.format(packages.length);
-  el("stat-games").textContent = fmt.format(games);
+  el("stat-cities").textContent = fmt.format(cities);
   el("stat-miles").textContent = fmt.format(Math.round(miles));
   el("stat-regions").textContent = fmt.format(regions);
   el("empty-state").hidden = packages.length > 0;
@@ -132,20 +158,58 @@ function applyFilters() {
   const region = el("filter-region").value;
   const query = el("filter-title").value.trim().toLowerCase();
   render(dataset.packages.filter(pkg =>
-    (month === "all" || pkg.month === month) &&
+    (month === "all" || (timelineCumulative ? pkg.month <= month : pkg.month === month)) &&
     (region === "all" || `${pkg.country}|${pkg.region}` === region) &&
     (!query || pkg.titles.some(title => title.toLowerCase().includes(query)))
   ));
+  const selectedMonth = el("filter-month").value;
+  el("timeline-status").textContent = selectedMonth === "all" ? "All time" : `${timelineCumulative ? "Through " : ""}${formatMonth(selectedMonth)}`;
 }
 
 function populateFilters(packages) {
-  const months = [...new Set(packages.map(pkg => pkg.month))].sort().reverse();
-  months.forEach(month => el("filter-month").add(new Option(month, month)));
+  timelineMonths = [...new Set(packages.map(pkg => pkg.month))].sort();
+  [...timelineMonths].reverse().forEach(month => el("filter-month").add(new Option(month, month)));
   const regions = [...new Map(packages.map(pkg => [
     `${pkg.country}|${pkg.region}`,
     pkg.region === pkg.country ? pkg.country : `${pkg.region}, ${pkg.country}`
   ])).entries()].sort((a,b) => a[1].localeCompare(b[1]));
   regions.forEach(([value, label]) => el("filter-region").add(new Option(label, value)));
+}
+
+function stopTimeline(buttonLabel = "Play timeline") {
+  if (timelineTimer) window.clearInterval(timelineTimer);
+  timelineTimer = null;
+  el("play-timeline").textContent = buttonLabel;
+  el("play-timeline").setAttribute("aria-pressed", "false");
+}
+
+function showTimelineMonth(index) {
+  timelineIndex = index;
+  el("filter-month").value = timelineMonths[index];
+  applyFilters();
+}
+
+function advanceTimeline() {
+  if (timelineIndex >= timelineMonths.length - 1) {
+    stopTimeline("Replay timeline");
+    return;
+  }
+  showTimelineMonth(timelineIndex + 1);
+}
+
+function toggleTimeline() {
+  if (timelineTimer) {
+    stopTimeline("Resume timeline");
+    return;
+  }
+  if (!timelineMonths.length) return;
+  timelineCumulative = true;
+  const selectedIndex = timelineMonths.indexOf(el("filter-month").value);
+  showTimelineMonth(selectedIndex >= 0 && selectedIndex < timelineMonths.length - 1 ? selectedIndex : 0);
+  el("play-timeline").textContent = "Pause timeline";
+  el("play-timeline").setAttribute("aria-pressed", "true");
+  const interval = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 1300 : 850;
+  timelineTimer = window.setInterval(advanceTimeline, interval);
 }
 
 fetch("data/shipments.json", { cache: "no-store" })
@@ -155,10 +219,12 @@ fetch("data/shipments.json", { cache: "no-store" })
     populateFilters(data.packages);
     render(data.packages);
     if (data.generatedAt) el("updated-at").textContent = `Updated ${new Date(data.generatedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}`;
-    ["filter-month", "filter-region"].forEach(id => el(id).addEventListener("change", applyFilters));
+    el("filter-month").addEventListener("change", () => { stopTimeline(); timelineCumulative = false; applyFilters(); });
+    el("filter-region").addEventListener("change", applyFilters);
     el("filter-title").addEventListener("input", applyFilters);
+    el("play-timeline").addEventListener("click", toggleTimeline);
     el("reset-filters").addEventListener("click", () => {
-      el("filter-month").value = "all"; el("filter-region").value = "all"; el("filter-title").value = ""; applyFilters();
+      stopTimeline(); timelineCumulative = false; el("filter-month").value = "all"; el("filter-region").value = "all"; el("filter-title").value = ""; applyFilters();
     });
   })
   .catch(error => {
