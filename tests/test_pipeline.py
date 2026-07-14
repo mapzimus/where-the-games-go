@@ -140,4 +140,5 @@ def test_dashboard_includes_filter_aware_sales_records():
     assert "renderRecords(packages);" in javascript
     assert 'California' in javascript
     assert 'href="styles.css?v=stats-1"' in html
-    assert 'src="app.js?v=stats-1"' in html
+    assert 'src="app.js?v=stats-2"' in html
+    assert 'fetch("data/shipments.json", { cache: "no-store" })' in javascript

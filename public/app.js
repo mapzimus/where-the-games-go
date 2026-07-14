@@ -148,7 +148,7 @@ function populateFilters(packages) {
   regions.forEach(([value, label]) => el("filter-region").add(new Option(label, value)));
 }
 
-fetch("data/shipments.json")
+fetch("data/shipments.json", { cache: "no-store" })
   .then(response => { if (!response.ok) throw new Error(`Data request failed: ${response.status}`); return response.json(); })
   .then(data => {
     dataset = data;

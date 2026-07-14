@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-13T02:06:42.319558Z",
+  "generatedAt": "2026-07-14T00:28:36.924147Z",
   "origin": {
     "name": "Salem, Massachusetts",
     "lat": 42.51953,
     "lng": -70.89672
   },
   "summary": {
-    "packages": 999,
-    "games": 999,
-    "miles": 1185554,
+    "packages": 1002,
+    "games": 1002,
+    "miles": 1190214,
     "regions": 53
   },
   "packages": [
@@ -13944,6 +13944,20 @@
       "id": "journey-5a8ebb213ee0-1"
     },
     {
+      "city": "San Antonio",
+      "region": "TX",
+      "country": "United States",
+      "lat": 29.4246,
+      "lng": -98.49514,
+      "month": "2026-07",
+      "distanceMiles": 1777,
+      "gameCount": 1,
+      "titles": [
+        "Call of Duty 3 - Xbox Original, CIB,W/MANUAL Tested & Working DISC MINT"
+      ],
+      "id": "journey-28a1f830e2db-1"
+    },
+    {
       "city": "Santa Barbara",
       "region": "CA",
       "country": "United States",
@@ -13984,6 +13998,34 @@
         "Lord of the Rings: The Fellowship of the Ring (Microsoft Xbox, 2002)"
       ],
       "id": "journey-15f86fb4b05d-1"
+    },
+    {
+      "city": "Union City",
+      "region": "NJ",
+      "country": "United States",
+      "lat": 40.77955,
+      "lng": -74.02375,
+      "month": "2026-07",
+      "distanceMiles": 201,
+      "gameCount": 1,
+      "titles": [
+        "MechAssault 2: Lone Wolf - Limited Edition - Original Xbox - 2-disc Tested Works"
+      ],
+      "id": "journey-7864a82084ce-1"
+    },
+    {
+      "city": "Vallejo",
+      "region": "CA",
+      "country": "United States",
+      "lat": 38.10409,
+      "lng": -122.25664,
+      "month": "2026-07",
+      "distanceMiles": 2682,
+      "gameCount": 1,
+      "titles": [
+        "Call of Duty Ghosts (PS3, Playstation 3, 2013) Complete | CIB | Tested"
+      ],
+      "id": "journey-25b292b75c97-1"
     },
     {
       "city": "Ypsilanti",
