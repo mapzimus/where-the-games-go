@@ -1,18 +1,30 @@
 const fmt = new Intl.NumberFormat("en-US");
-const map = L.map("map", { zoomControl: false, minZoom: 2 }).setView([39.5, -98.35], 4);
-L.control.zoom({ position: "topright" }).addTo(map);
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 18,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+if (new URLSearchParams(window.location.search).has("preview")) document.documentElement.classList.add("preview-mode");
+const DEFAULT_VIEW = { center: [-97, 38], zoom: 1.55, pitch: 0, bearing: 0 };
+const emptyCollection = () => ({ type: "FeatureCollection", features: [] });
 
-const routeLayer = L.layerGroup().addTo(map);
-const pointLayer = L.layerGroup().addTo(map);
+const map = new maplibregl.Map({
+  container: "map",
+  center: DEFAULT_VIEW.center,
+  zoom: DEFAULT_VIEW.zoom,
+  minZoom: 0.5,
+  maxZoom: 16,
+  style: "https://tiles.openfreemap.org/styles/dark"
+});
+map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
+
 let dataset;
 let timelineTimer = null;
 let timelineMonths = [];
 let timelineIndex = -1;
 let timelineCumulative = false;
+let visibleGroups = new Map();
+let visibleHubGroups = new Map();
+let visibleInternational = [];
+let internationalFocusIndex = -1;
+let activePopup = null;
+const routeGeometryCache = new Map();
+const INTERNATIONAL_HUB_KEYS = new Set(["glendale heights|il|united states"]);
 
 const el = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
@@ -42,11 +54,19 @@ function formatMonth(month) {
 }
 
 function titleCase(value) {
-  return value.replace(/\b\w/g, character => character.toUpperCase());
+  return value.toLocaleLowerCase().replace(/\b\w/g, character => character.toUpperCase());
 }
 
 function cityKey(pkg) {
-  return `${pkg.city.toLocaleLowerCase()}|${pkg.region.toLocaleLowerCase()}|${pkg.country.toLocaleLowerCase()}`;
+  return locationKey(pkg);
+}
+
+function locationKey(location) {
+  return `${location.city.toLocaleLowerCase()}|${location.region.toLocaleLowerCase()}|${location.country.toLocaleLowerCase()}`;
+}
+
+function isHubOnly(pkg) {
+  return !pkg.via && INTERNATIONAL_HUB_KEYS.has(cityKey(pkg));
 }
 
 function median(values) {
@@ -56,14 +76,15 @@ function median(values) {
   return Math.round(sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2);
 }
 
+function packageLabel(count) {
+  return `${fmt.format(count)} package${count === 1 ? "" : "s"}`;
+}
+
 function renderRecords(packages) {
   const biggestMonth = topGroup(packages, pkg => ({ key: pkg.month, label: pkg.month }));
   const biggestYear = topGroup(packages, pkg => ({ key: pkg.month.slice(0, 4), label: pkg.month.slice(0, 4) }));
   const topState = topGroup(packages.filter(pkg => pkg.country === "United States"), pkg => ({ key: pkg.region.toUpperCase(), label: stateNames[pkg.region.toUpperCase()] || pkg.region }));
-  const topCity = topGroup(packages, pkg => ({
-    key: cityKey(pkg),
-    label: `${titleCase(pkg.city)}, ${pkg.region}`
-  }));
+  const topCity = topGroup(packages, pkg => ({ key: cityKey(pkg), label: `${titleCase(pkg.city)}, ${pkg.region}` }));
   const averageMiles = packages.length ? Math.round(packages.reduce((total, pkg) => total + pkg.distanceMiles, 0) / packages.length) : null;
   const medianMiles = median(packages.map(pkg => pkg.distanceMiles));
   const cityCounts = new Map();
@@ -72,70 +93,169 @@ function renderRecords(packages) {
   const longHaulTrips = packages.filter(pkg => pkg.distanceMiles >= 2000).length;
 
   el("record-month").textContent = biggestMonth ? formatMonth(biggestMonth.label) : "—";
-  el("record-month-detail").textContent = biggestMonth ? `${fmt.format(biggestMonth.count)} packages` : "No matching packages";
+  el("record-month-detail").textContent = biggestMonth ? packageLabel(biggestMonth.count) : "No matching packages";
   el("record-year").textContent = biggestYear?.label || "—";
-  el("record-year-detail").textContent = biggestYear ? `${fmt.format(biggestYear.count)} packages` : "No matching packages";
+  el("record-year-detail").textContent = biggestYear ? packageLabel(biggestYear.count) : "No matching packages";
   el("record-state").textContent = topState?.label || "—";
-  el("record-state-detail").textContent = topState ? `${fmt.format(topState.count)} packages` : "No matching U.S. packages";
+  el("record-state-detail").textContent = topState ? packageLabel(topState.count) : "No matching U.S. packages";
   el("record-city").textContent = topCity?.label || "—";
-  el("record-city-detail").textContent = topCity ? `${fmt.format(topCity.count)} packages` : "No matching packages";
+  el("record-city-detail").textContent = topCity ? packageLabel(topCity.count) : "No matching packages";
   el("record-average").textContent = averageMiles === null ? "—" : `${fmt.format(averageMiles)} mi`;
   el("record-median").textContent = medianMiles === null ? "—" : `${fmt.format(medianMiles)} mi`;
   el("record-repeat").textContent = fmt.format(repeatDestinations);
   el("record-longhaul").textContent = fmt.format(longHaulTrips);
 }
 
-function curvedRoute(origin, destination) {
-  const [aLat, aLng] = origin;
-  const [bLat, bLng] = destination;
-  const midpoint = [(aLat + bLat) / 2, (aLng + bLng) / 2];
-  const bend = Math.min(9, Math.abs(bLng - aLng) * .11);
-  midpoint[0] += bend;
-  const points = [];
-  for (let i = 0; i <= 24; i++) {
-    const t = i / 24;
-    points.push([
-      (1-t)*(1-t)*aLat + 2*(1-t)*t*midpoint[0] + t*t*bLat,
-      (1-t)*(1-t)*aLng + 2*(1-t)*t*midpoint[1] + t*t*bLng
-    ]);
+function toVector([lng, lat]) {
+  const phi = lat * Math.PI / 180;
+  const lambda = lng * Math.PI / 180;
+  return [Math.cos(phi) * Math.cos(lambda), Math.cos(phi) * Math.sin(lambda), Math.sin(phi)];
+}
+
+function toLngLat([x, y, z]) {
+  return [Math.atan2(y, x) * 180 / Math.PI, Math.atan2(z, Math.hypot(x, y)) * 180 / Math.PI];
+}
+
+function splitAntimeridian(coordinates) {
+  const segments = [[coordinates[0]]];
+  for (let i = 1; i < coordinates.length; i += 1) {
+    const previous = coordinates[i - 1];
+    const current = coordinates[i];
+    const delta = current[0] - previous[0];
+    if (Math.abs(delta) <= 180) {
+      segments[segments.length - 1].push(current);
+      continue;
+    }
+    const adjustedLng = current[0] + (delta > 0 ? -360 : 360);
+    const boundary = previous[0] > 0 ? 180 : -180;
+    const fraction = (boundary - previous[0]) / (adjustedLng - previous[0]);
+    const crossingLat = previous[1] + (current[1] - previous[1]) * fraction;
+    segments[segments.length - 1].push([boundary, crossingLat]);
+    segments.push([[boundary * -1, crossingLat], current]);
   }
-  return points;
+  return segments;
+}
+
+function greatCircleGeometry(origin, destination, stepDegrees = 3) {
+  const a = toVector(origin);
+  const b = toVector(destination);
+  const omega = Math.acos(Math.min(1, Math.max(-1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])));
+  const steps = Math.max(2, Math.ceil((omega * 180 / Math.PI) / stepDegrees));
+  const sinOmega = Math.sin(omega);
+  const coordinates = [];
+  for (let i = 0; i <= steps; i += 1) {
+    const t = i / steps;
+    if (sinOmega < 1e-8) {
+      coordinates.push([origin[0] + (destination[0] - origin[0]) * t, origin[1] + (destination[1] - origin[1]) * t]);
+    } else {
+      const weightA = Math.sin((1 - t) * omega) / sinOmega;
+      const weightB = Math.sin(t * omega) / sinOmega;
+      coordinates.push(toLngLat([a[0] * weightA + b[0] * weightB, a[1] * weightA + b[1] * weightB, a[2] * weightA + b[2] * weightB]));
+    }
+  }
+  const segments = splitAntimeridian(coordinates);
+  return segments.length === 1
+    ? { type: "LineString", coordinates: segments[0] }
+    : { type: "MultiLineString", coordinates: segments };
 }
 
 function popup(pkg) {
   const titles = pkg.titles.slice(0, 4).map(title => `<div class="popup-title">${escapeHtml(title)}</div>`).join("");
   const more = pkg.titles.length > 4 ? `<div class="popup-meta">+${pkg.titles.length - 4} more</div>` : "";
-  return `<div class="popup-place">${escapeHtml(pkg.city)}, ${escapeHtml(pkg.region)}</div>${titles}${more}<div class="popup-meta">${fmt.format(pkg.distanceMiles)} approximate miles · ${escapeHtml(pkg.month)}</div>`;
+  const via = pkg.via ? `<div class="popup-meta popup-via">via ${escapeHtml(titleCase(pkg.via.city))}, ${escapeHtml(pkg.via.region)} · eBay international handoff</div>` : "";
+  return `<div class="popup-place">${escapeHtml(titleCase(pkg.city))}, ${escapeHtml(pkg.region)}</div>${via}${titles}${more}<div class="popup-meta">${fmt.format(pkg.distanceMiles)} approximate miles · ${escapeHtml(pkg.month)}</div>`;
+}
+
+function groupedPopup(items) {
+  const first = items[0];
+  return items.length === 1
+    ? popup(first)
+    : `<div class="popup-place">${escapeHtml(titleCase(first.city))}, ${escapeHtml(first.region)}</div><div class="popup-title">${fmt.format(items.length)} packages to this city</div><div class="popup-meta">Use the filters to narrow this destination.</div>`;
+}
+
+function hubPopup(group) {
+  const first = group.location;
+  const total = group.known.length + group.unknown.length;
+  const recovered = group.known.length
+    ? `<div class="popup-title">${packageLabel(group.known.length)} continued to a recovered international destination.</div>`
+    : "";
+  const unavailable = group.unknown.length
+    ? `<div class="popup-meta">${packageLabel(group.unknown.length)} ended at this hub in the stored export, so their onward destinations are not shown.</div>`
+    : "";
+  return `<div class="popup-place hub-place">eBay international shipping hub</div><div class="popup-title">${escapeHtml(titleCase(first.city))}, ${escapeHtml(first.region)}</div><div class="popup-meta">${packageLabel(total)} reached this handoff point.</div>${recovered}${unavailable}`;
+}
+
+function setMapData(sourceId, features) {
+  map.getSource(sourceId).setData({ type: "FeatureCollection", features });
 }
 
 function render(packages) {
-  routeLayer.clearLayers();
-  pointLayer.clearLayers();
-  const origin = [dataset.origin.lat, dataset.origin.lng];
   const grouped = new Map();
-
+  const hubGroups = new Map();
   packages.forEach(pkg => {
-    const key = `${pkg.lat}|${pkg.lng}`;
+    const hub = pkg.via || (isHubOnly(pkg) ? pkg : null);
+    if (hub) {
+      const hubKey = locationKey(hub);
+      if (!hubGroups.has(hubKey)) hubGroups.set(hubKey, { location: hub, known: [], unknown: [] });
+      hubGroups.get(hubKey)[pkg.via ? "known" : "unknown"].push(pkg);
+    }
+    if (isHubOnly(pkg)) return;
+    const key = cityKey(pkg);
     if (!grouped.has(key)) grouped.set(key, []);
     grouped.get(key).push(pkg);
-    L.polyline(curvedRoute(origin, [pkg.lat, pkg.lng]), {
-      color: "#71a7ff", weight: 1, opacity: .12, interactive: false
-    }).addTo(routeLayer);
   });
+  visibleGroups = grouped;
+  visibleHubGroups = hubGroups;
+  visibleInternational = packages.filter(pkg => pkg.via);
 
-  grouped.forEach(items => {
+  const origin = [dataset.origin.lng, dataset.origin.lat];
+  const routeLines = [];
+  const onwardRouteLines = [];
+  const destinationFeatures = [];
+  const hubFeatures = [];
+  grouped.forEach((items, key) => {
     const first = items[0];
-    const radius = Math.min(15, 4.5 + Math.sqrt(items.length) * 1.4);
-    const marker = L.circleMarker([first.lat, first.lng], {
-      radius, color: "#111315", weight: 1.5, fillColor: "#ff735c", fillOpacity: .86
+    const routeEnd = first.via ? [first.via.lng, first.via.lat] : [first.lng, first.lat];
+    const routeKey = `origin|${routeEnd.join("|")}`;
+    if (!routeGeometryCache.has(routeKey)) routeGeometryCache.set(routeKey, greatCircleGeometry(origin, routeEnd));
+    const geometry = routeGeometryCache.get(routeKey);
+    if (geometry.type === "LineString") routeLines.push(geometry.coordinates);
+    else routeLines.push(...geometry.coordinates);
+    if (first.via) {
+      const onwardKey = `onward|${first.via.lng}|${first.via.lat}|${first.lng}|${first.lat}`;
+      if (!routeGeometryCache.has(onwardKey)) routeGeometryCache.set(onwardKey, greatCircleGeometry([first.via.lng, first.via.lat], [first.lng, first.lat]));
+      const onwardGeometry = routeGeometryCache.get(onwardKey);
+      if (onwardGeometry.type === "LineString") onwardRouteLines.push(onwardGeometry.coordinates);
+      else onwardRouteLines.push(...onwardGeometry.coordinates);
+    }
+    destinationFeatures.push({ type: "Feature", properties: { key, count: items.length }, geometry: { type: "Point", coordinates: [first.lng, first.lat] } });
+  });
+  hubGroups.forEach((group, key) => {
+    const hub = group.location;
+    const routeKey = `origin|${hub.lng}|${hub.lat}`;
+    if (!routeGeometryCache.has(routeKey)) routeGeometryCache.set(routeKey, greatCircleGeometry(origin, [hub.lng, hub.lat]));
+    if (!grouped.size || !group.known.length) {
+      const geometry = routeGeometryCache.get(routeKey);
+      if (geometry.type === "LineString") routeLines.push(geometry.coordinates);
+      else routeLines.push(...geometry.coordinates);
+    }
+    hubFeatures.push({
+      type: "Feature",
+      properties: { key, count: group.known.length + group.unknown.length },
+      geometry: { type: "Point", coordinates: [hub.lng, hub.lat] }
     });
-    marker.bindPopup(items.length === 1 ? popup(first) : `<div class="popup-place">${escapeHtml(first.city)}, ${escapeHtml(first.region)}</div><div class="popup-title">${items.length} packages to this city</div><div class="popup-meta">Select filters to narrow this destination.</div>`);
-    marker.addTo(pointLayer);
   });
 
-  L.circleMarker(origin, { radius: 9, color: "#d6ff54", weight: 2, fillColor: "#d6ff54", fillOpacity: 1 })
-    .bindPopup(`<div class="popup-place">Journey origin</div><div class="popup-title">${escapeHtml(dataset.origin.name)}</div>`)
-    .addTo(pointLayer);
+  setMapData("destinations", destinationFeatures);
+  setMapData("international-hubs", hubFeatures);
+  setMapData("origin", [{ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: origin } }]);
+  setMapData("routes", routeLines.length ? [{ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: routeLines } }] : []);
+  setMapData("onward-routes", onwardRouteLines.length ? [{ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: onwardRouteLines } }] : []);
+
+  if (activePopup) {
+    activePopup.remove();
+    activePopup = null;
+  }
 
   const miles = packages.reduce((n, pkg) => n + pkg.distanceMiles, 0);
   const regions = new Set(packages.map(pkg => `${pkg.country}|${pkg.region}`)).size;
@@ -145,13 +265,138 @@ function render(packages) {
   el("stat-miles").textContent = fmt.format(Math.round(miles));
   el("stat-regions").textContent = fmt.format(regions);
   el("empty-state").hidden = packages.length > 0;
+  const internationalKnown = packages.filter(pkg => pkg.via).length;
+  const internationalUnknown = packages.filter(isHubOnly).length;
+  const internationalStatus = el("international-status");
+  internationalStatus.hidden = internationalKnown + internationalUnknown === 0;
+  internationalStatus.disabled = internationalKnown === 0;
+  internationalStatus.textContent = `${packageLabel(internationalKnown)} mapped beyond the hub · ${packageLabel(internationalUnknown)} hub-only${internationalKnown ? " · Tour mapped destinations" : ""}`;
   renderRecords(packages);
 
   const farthest = [...packages].sort((a, b) => b.distanceMiles - a.distanceMiles)[0];
   el("farthest-distance").textContent = farthest ? `${fmt.format(farthest.distanceMiles)} mi` : "— mi";
-  el("farthest-place").textContent = farthest ? `${farthest.city}, ${farthest.region}` : "Waiting for the first trip";
+  el("farthest-place").textContent = farthest ? `${titleCase(farthest.city)}, ${farthest.region}` : "Waiting for the first trip";
   el("farthest-title").textContent = farthest ? farthest.titles.join(" · ") : "The farthest-travelled game will appear here.";
 }
+
+function setupMapLayers() {
+  map.addSource("routes", { type: "geojson", data: emptyCollection() });
+  map.addSource("onward-routes", { type: "geojson", data: emptyCollection() });
+  map.addSource("destinations", { type: "geojson", data: emptyCollection() });
+  map.addSource("international-hubs", { type: "geojson", data: emptyCollection() });
+  map.addSource("origin", { type: "geojson", data: emptyCollection() });
+  map.addLayer({
+    id: "route-casing",
+    type: "line",
+    source: "routes",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: { "line-color": "#02070d", "line-width": 4, "line-opacity": 0.9 }
+  });
+  map.addLayer({
+    id: "routes",
+    type: "line",
+    source: "routes",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: { "line-color": "#7db7ff", "line-width": 1.75, "line-opacity": 0.78 }
+  });
+  map.addLayer({
+    id: "onward-route-casing",
+    type: "line",
+    source: "onward-routes",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: { "line-color": "#02070d", "line-width": 5, "line-opacity": 0.95 }
+  });
+  map.addLayer({
+    id: "onward-routes",
+    type: "line",
+    source: "onward-routes",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: { "line-color": "#ffd166", "line-width": 2.5, "line-opacity": 0.96, "line-dasharray": [2, 1.35] }
+  });
+  map.addLayer({
+    id: "destinations",
+    type: "circle",
+    source: "destinations",
+    paint: {
+      "circle-radius": ["interpolate", ["linear"], ["get", "count"], 1, 4, 4, 7, 10, 11],
+      "circle-color": "#ff735c",
+      "circle-stroke-color": "#111315",
+      "circle-stroke-width": 1.5,
+      "circle-opacity": 0.9
+    }
+  });
+  map.addLayer({
+    id: "international-hubs",
+    type: "circle",
+    source: "international-hubs",
+    paint: {
+      "circle-radius": ["interpolate", ["linear"], ["get", "count"], 1, 6, 10, 10],
+      "circle-color": "#ffd166",
+      "circle-stroke-color": "#111315",
+      "circle-stroke-width": 2,
+      "circle-opacity": 0.96
+    }
+  });
+  map.addLayer({
+    id: "origin",
+    type: "circle",
+    source: "origin",
+    paint: { "circle-radius": 9, "circle-color": "#d6ff54", "circle-stroke-color": "#d6ff54", "circle-stroke-width": 2, "circle-blur": 0.08 }
+  });
+
+  map.on("click", "destinations", event => {
+    event.preventDefault();
+    const key = event.features?.[0]?.properties?.key;
+    const items = visibleGroups.get(key) || [];
+    if (!items.length) return;
+    if (activePopup) activePopup.remove();
+    activePopup = new maplibregl.Popup({ closeButton: true, maxWidth: "300px" })
+      .setLngLat(event.features[0].geometry.coordinates)
+      .setHTML(groupedPopup(items))
+      .addTo(map);
+  });
+  map.on("click", "origin", event => {
+    event.preventDefault();
+    if (activePopup) activePopup.remove();
+    activePopup = new maplibregl.Popup({ closeButton: true })
+      .setLngLat(event.features[0].geometry.coordinates)
+      .setHTML(`<div class="popup-place">Journey origin</div><div class="popup-title">${escapeHtml(dataset?.origin?.name || "Salem, Massachusetts")}</div>`)
+      .addTo(map);
+  });
+  map.on("click", "international-hubs", event => {
+    event.preventDefault();
+    const key = event.features?.[0]?.properties?.key;
+    const group = visibleHubGroups.get(key);
+    if (!group) return;
+    if (activePopup) activePopup.remove();
+    activePopup = new maplibregl.Popup({ closeButton: true, maxWidth: "330px" })
+      .setLngLat(event.features[0].geometry.coordinates)
+      .setHTML(hubPopup(group))
+      .addTo(map);
+  });
+  ["destinations", "international-hubs", "origin"].forEach(layerId => {
+    map.on("mouseenter", layerId, () => { map.getCanvas().style.cursor = "pointer"; });
+    map.on("mouseleave", layerId, () => { map.getCanvas().style.cursor = ""; });
+  });
+}
+
+const styleReady = new Promise(resolve => {
+  map.once("style.load", () => {
+    map.setProjection({ type: "globe" });
+    if (typeof map.setSky === "function") {
+      map.setSky({
+        "sky-color": "#02070d",
+        "horizon-color": "#102235",
+        "fog-color": "#07111c",
+        "sky-horizon-blend": 0.12,
+        "horizon-fog-blend": 0.18,
+        "fog-ground-blend": 0.28
+      });
+    }
+    setupMapLayers();
+    resolve();
+  });
+});
 
 function applyFilters() {
   const month = el("filter-month").value;
@@ -172,7 +417,7 @@ function populateFilters(packages) {
   const regions = [...new Map(packages.map(pkg => [
     `${pkg.country}|${pkg.region}`,
     pkg.region === pkg.country ? pkg.country : `${pkg.region}, ${pkg.country}`
-  ])).entries()].sort((a,b) => a[1].localeCompare(b[1]));
+  ])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
   regions.forEach(([value, label]) => el("filter-region").add(new Option(label, value)));
 }
 
@@ -212,19 +457,49 @@ function toggleTimeline() {
   timelineTimer = window.setInterval(advanceTimeline, interval);
 }
 
+function resetGlobe() {
+  map.easeTo({ ...DEFAULT_VIEW, duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 800 });
+}
+
+function focusInternational() {
+  if (!visibleInternational.length) return;
+  internationalFocusIndex = (internationalFocusIndex + 1) % visibleInternational.length;
+  const pkg = visibleInternational[internationalFocusIndex];
+  if (activePopup) activePopup.remove();
+  map.flyTo({
+    center: [pkg.lng, pkg.lat],
+    zoom: 2.35,
+    duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1200
+  });
+  map.once("moveend", () => {
+    activePopup = new maplibregl.Popup({ closeButton: true, maxWidth: "320px" })
+      .setLngLat([pkg.lng, pkg.lat])
+      .setHTML(popup(pkg))
+      .addTo(map);
+  });
+}
+
 fetch("data/shipments.json", { cache: "no-store" })
   .then(response => { if (!response.ok) throw new Error(`Data request failed: ${response.status}`); return response.json(); })
-  .then(data => {
+  .then(async data => {
     dataset = data;
     populateFilters(data.packages);
+    await styleReady;
     render(data.packages);
     if (data.generatedAt) el("updated-at").textContent = `Updated ${new Date(data.generatedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}`;
     el("filter-month").addEventListener("change", () => { stopTimeline(); timelineCumulative = false; applyFilters(); });
     el("filter-region").addEventListener("change", applyFilters);
     el("filter-title").addEventListener("input", applyFilters);
     el("play-timeline").addEventListener("click", toggleTimeline);
+    el("reset-globe").addEventListener("click", resetGlobe);
+    el("international-status").addEventListener("click", focusInternational);
     el("reset-filters").addEventListener("click", () => {
-      stopTimeline(); timelineCumulative = false; el("filter-month").value = "all"; el("filter-region").value = "all"; el("filter-title").value = ""; applyFilters();
+      stopTimeline();
+      timelineCumulative = false;
+      el("filter-month").value = "all";
+      el("filter-region").value = "all";
+      el("filter-title").value = "";
+      applyFilters();
     });
   })
   .catch(error => {

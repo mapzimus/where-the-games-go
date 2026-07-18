@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-14T00:28:36.924147Z",
+  "generatedAt": "2026-07-18T17:36:45.438271Z",
   "origin": {
     "name": "Salem, Massachusetts",
     "lat": 42.51953,
     "lng": -70.89672
   },
   "summary": {
-    "packages": 1002,
-    "games": 1002,
-    "miles": 1190214,
-    "regions": 53
+    "packages": 1009,
+    "games": 1009,
+    "miles": 1214621,
+    "regions": 55
   },
   "packages": [
     {
@@ -11452,20 +11452,6 @@
       "id": "journey-37cfa4ebd3d0-1"
     },
     {
-      "city": "Glendale Heights",
-      "region": "IL",
-      "country": "United States",
-      "lat": 41.91895,
-      "lng": -88.07657,
-      "month": "2026-04",
-      "distanceMiles": 879,
-      "gameCount": 1,
-      "titles": [
-        "FACTORY SEALED!!! The Last of Us PS3 PlayStation 3 San Mateo 2013 NIB New Sealed"
-      ],
-      "id": "journey-17b0af057de2-1"
-    },
-    {
       "city": "Hanover",
       "region": "PA",
       "country": "United States",
@@ -12068,6 +12054,27 @@
       "id": "journey-c9b6f99c8d21-1"
     },
     {
+      "city": "santiago",
+      "region": "Region Metropolitana",
+      "country": "Chile",
+      "lat": -33.4377,
+      "lng": -70.65107,
+      "month": "2026-04",
+      "distanceMiles": 5248,
+      "gameCount": 1,
+      "titles": [
+        "FACTORY SEALED!!! The Last of Us PS3 PlayStation 3 San Mateo 2013 NIB New Sealed"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-7573c18e37ef-1"
+    },
+    {
       "city": "Albemarle",
       "region": "NC",
       "country": "United States",
@@ -12334,20 +12341,6 @@
       "id": "journey-1506e00a6da0-1"
     },
     {
-      "city": "Glendale Heights",
-      "region": "IL",
-      "country": "United States",
-      "lat": 41.91895,
-      "lng": -88.07657,
-      "month": "2026-05",
-      "distanceMiles": 879,
-      "gameCount": 1,
-      "titles": [
-        "Horizon Zero Dawn - (Sony PlayStation 4) PS4 Brand New Factory Sealed"
-      ],
-      "id": "journey-ca098c954e5d-1"
-    },
-    {
       "city": "Hampton",
       "region": "GA",
       "country": "United States",
@@ -12430,6 +12423,27 @@
         "Star Wars: Battlefront II (PlayStation 2, 2005) PS2 - Complete"
       ],
       "id": "journey-21cb66bc3f02-1"
+    },
+    {
+      "city": "MOOROOPNA",
+      "region": "VIC",
+      "country": "Australia",
+      "lat": -36.39449,
+      "lng": 145.36018,
+      "month": "2026-05",
+      "distanceMiles": 10473,
+      "gameCount": 1,
+      "titles": [
+        "Horizon Zero Dawn - (Sony PlayStation 4) PS4 Brand New Factory Sealed"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-4da658ca80fd-1"
     },
     {
       "city": "Monroe",
@@ -13804,6 +13818,20 @@
       "id": "journey-02943d3783f3-1"
     },
     {
+      "city": "Bedford",
+      "region": "IN",
+      "country": "United States",
+      "lat": 38.86116,
+      "lng": -86.48721,
+      "month": "2026-07",
+      "distanceMiles": 854,
+      "gameCount": 1,
+      "titles": [
+        "Red Dead Redemption Sony PlayStation 3, 2010 CIB Complete with Map Rockstar Game"
+      ],
+      "id": "journey-e4b95adb5a3b-1"
+    },
+    {
       "city": "Berlin Center",
       "region": "OH",
       "country": "United States",
@@ -13816,6 +13844,20 @@
         "Need for Speed Most Wanted PS2 PlayStation 2 CIB Complete w/ Manual Black Label"
       ],
       "id": "journey-d1ea41b58216-1"
+    },
+    {
+      "city": "Berwick",
+      "region": "PA",
+      "country": "United States",
+      "lat": 41.0602,
+      "lng": -76.24613,
+      "month": "2026-07",
+      "distanceMiles": 293,
+      "gameCount": 1,
+      "titles": [
+        "Hotel For Dogs - Nintendo DS Game - Game Cartridge Only TESTED"
+      ],
+      "id": "journey-b01bcbc62879-1"
     },
     {
       "city": "Brooklyn",
@@ -13902,6 +13944,20 @@
       "id": "journey-5533e00b3b59-1"
     },
     {
+      "city": "Milwaukie",
+      "region": "OR",
+      "country": "United States",
+      "lat": 45.44401,
+      "lng": -122.64125,
+      "month": "2026-07",
+      "distanceMiles": 2536,
+      "gameCount": 1,
+      "titles": [
+        "Middle Earth Shadow Of War (playstation 4) PS4 CIB Complete"
+      ],
+      "id": "journey-7d6227f89cee-1"
+    },
+    {
       "city": "Palm Coast",
       "region": "FL",
       "country": "United States",
@@ -13942,6 +13998,20 @@
         "Dead Rising - Sony PlayStation 4 PS4"
       ],
       "id": "journey-5a8ebb213ee0-1"
+    },
+    {
+      "city": "Sacramento",
+      "region": "CA",
+      "country": "United States",
+      "lat": 38.58106,
+      "lng": -121.49389,
+      "month": "2026-07",
+      "distanceMiles": 2631,
+      "gameCount": 1,
+      "titles": [
+        "Skate 3 Microsoft Xbox 360 Video Game Tested Works"
+      ],
+      "id": "journey-fd886cfbecc6-1"
     },
     {
       "city": "San Antonio",
@@ -13986,6 +14056,34 @@
       "id": "journey-008388c01bd5-1"
     },
     {
+      "city": "Syracuse",
+      "region": "UT",
+      "country": "United States",
+      "lat": 41.08959,
+      "lng": -112.06389,
+      "month": "2026-07",
+      "distanceMiles": 2102,
+      "gameCount": 1,
+      "titles": [
+        "Grand Theft Auto III 3 PlayStation 2 Map & Manual CIB"
+      ],
+      "id": "journey-59d41a7630a6-1"
+    },
+    {
+      "city": "Tampa",
+      "region": "FL",
+      "country": "United States",
+      "lat": 27.94499,
+      "lng": -82.45831,
+      "month": "2026-07",
+      "distanceMiles": 1197,
+      "gameCount": 1,
+      "titles": [
+        "Burnout 3 Takedown (Microsoft Xbox Platinum Hits Complete W/ Manual CIB"
+      ],
+      "id": "journey-60f0a1145437-1"
+    },
+    {
       "city": "Tierra Amarilla",
       "region": "NM",
       "country": "United States",
@@ -14026,6 +14124,20 @@
         "Call of Duty Ghosts (PS3, Playstation 3, 2013) Complete | CIB | Tested"
       ],
       "id": "journey-25b292b75c97-1"
+    },
+    {
+      "city": "Wellington",
+      "region": "KY",
+      "country": "United States",
+      "lat": 38.21646,
+      "lng": -85.66913,
+      "month": "2026-07",
+      "distanceMiles": 831,
+      "gameCount": 1,
+      "titles": [
+        "Finding Nemo (Sony PlayStation 2, 2003) PS2 Complete W/ Manual Greatest Hits"
+      ],
+      "id": "journey-d669d1520f4d-1"
     },
     {
       "city": "Ypsilanti",

@@ -58,6 +58,7 @@ jobs:
           python scripts/build_map_data.py
           --input private/ebay_api_orders.json
           --existing public/data/shipments.json
+          --replace-hub-records
       - name: Verify privacy boundary and pipeline
         if: steps.secrets.outputs.configured == 'true'
         run: pytest -q

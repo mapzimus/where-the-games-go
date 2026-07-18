@@ -28,6 +28,8 @@ PUBLIC_PACKAGE_KEYS = {
     "id", "city", "region", "country", "lat", "lng", "month",
     "distanceMiles", "gameCount", "titles",
 }
+OPTIONAL_PUBLIC_PACKAGE_KEYS = {"via"}
+PUBLIC_VIA_KEYS = {"city", "region", "country", "lat", "lng"}
 FORBIDDEN_OUTPUT_TERMS = {
     "buyer", "address", "email", "phone", "zip", "postal", "tracking",
     "order", "username", "transaction", "tax", "payment",
@@ -37,6 +39,19 @@ COUNTRY_CODES = {
     "united states": ("US", "United States"), "united states of america": ("US", "United States"),
     "pr": ("PR", "Puerto Rico"), "puerto rico": ("PR", "Puerto Rico"),
     "ca": ("CA", "Canada"), "canada": ("CA", "Canada"),
+    "au": ("AU", "Australia"), "australia": ("AU", "Australia"),
+    "cl": ("CL", "Chile"), "chile": ("CL", "Chile"),
+    "gb": ("GB", "United Kingdom"), "uk": ("GB", "United Kingdom"),
+    "united kingdom": ("GB", "United Kingdom"),
+    "jp": ("JP", "Japan"), "japan": ("JP", "Japan"),
+    "de": ("DE", "Germany"), "germany": ("DE", "Germany"),
+    "fr": ("FR", "France"), "france": ("FR", "France"),
+    "ie": ("IE", "Ireland"), "ireland": ("IE", "Ireland"),
+    "it": ("IT", "Italy"), "italy": ("IT", "Italy"),
+    "es": ("ES", "Spain"), "spain": ("ES", "Spain"),
+    "nl": ("NL", "Netherlands"), "netherlands": ("NL", "Netherlands"),
+    "nz": ("NZ", "New Zealand"), "new zealand": ("NZ", "New Zealand"),
+    "mx": ("MX", "Mexico"), "mexico": ("MX", "Mexico"),
 }
 
 
@@ -50,6 +65,10 @@ class LineItem:
     month: str
     title: str
     quantity: int = 1
+    hub_city: str = ""
+    hub_region: str = ""
+    hub_country_code: str = ""
+    hub_country_name: str = ""
 
 
 @dataclass
@@ -61,6 +80,10 @@ class Package:
     month: str
     titles: list[str] = field(default_factory=list)
     game_count: int = 0
+    hub_city: str = ""
+    hub_region: str = ""
+    hub_country_code: str = ""
+    hub_country_name: str = ""
 
 
 def clean(value: object) -> str:
@@ -108,12 +131,21 @@ def read_ebay_csv(path: Path) -> list[LineItem]:
     result: list[LineItem] = []
     for index, values in enumerate(rows[header_index + 1:], start=1):
         row = dict(zip(header, values))
-        city = clean(row.get("Ship To City"))
-        region = clean(row.get("Ship To State"))
+        ship_city = clean(row.get("Ship To City"))
+        ship_region = clean(row.get("Ship To State"))
         title = clean(row.get("Item Title"))
-        if not city or not region or not title:
+        if not ship_city or not ship_region or not title:
             continue
-        code, name = country(row.get("Ship To Country"))
+        ship_code, ship_name = country(row.get("Ship To Country"))
+        is_ebay_international = clean(row.get("eBay International Shipping")).casefold() == "yes"
+        buyer_city = clean(row.get("Buyer City"))
+        buyer_region = clean(row.get("Buyer State"))
+        buyer_code, buyer_country = country(row.get("Buyer Country"))
+        has_final_destination = is_ebay_international and buyer_city and buyer_code and buyer_code != ship_code
+        city = buyer_city if has_final_destination else ship_city
+        code = buyer_code if has_final_destination else ship_code
+        name = buyer_country if has_final_destination else ship_name
+        region = (buyer_region or buyer_country) if has_final_destination else ship_region
         order_key = clean(row.get("Order Number") or row.get("Sales Record Number"))
         if not order_key:
             order_key = f"csv-row-{index}"
@@ -126,19 +158,25 @@ def read_ebay_csv(path: Path) -> list[LineItem]:
             month=month_of(row.get("Sale Date") or row.get("Paid On Date")),
             title=title,
             quantity=quantity_of(row.get("Quantity")),
+            hub_city=ship_city if has_final_destination else "",
+            hub_region=ship_region if has_final_destination else "",
+            hub_country_code=ship_code if has_final_destination else "",
+            hub_country_name=ship_name if has_final_destination else "",
         ))
     return result
 
 
-def _shipping_address(order: dict) -> dict:
+def _shipping_addresses(order: dict) -> tuple[dict, dict]:
     instructions = order.get("fulfillmentStartInstructions") or []
     for instruction in instructions:
         ship_to = ((instruction.get("shippingStep") or {}).get("shipTo") or {})
         if ship_to:
             # The current Fulfillment API wraps Address in ExtendedContact.
             # Retaining the direct fallback also accepts older saved fixtures.
-            return ship_to.get("contactAddress") or ship_to
-    return {}
+            hub_or_destination = ship_to.get("contactAddress") or ship_to
+            final_destination = instruction.get("finalDestinationAddress") or {}
+            return hub_or_destination, final_destination
+    return {}, {}
 
 
 def read_ebay_api_json(path: Path) -> list[LineItem]:
@@ -146,24 +184,35 @@ def read_ebay_api_json(path: Path) -> list[LineItem]:
     orders = payload.get("orders", payload if isinstance(payload, list) else [])
     result: list[LineItem] = []
     for index, order in enumerate(orders):
-        address = _shipping_address(order)
+        address, final_destination = _shipping_addresses(order)
         city = clean(address.get("city"))
         region = clean(address.get("stateOrProvince"))
         code, name = country(address.get("countryCode"))
         if not city or not region:
             continue
+        final_city = clean(final_destination.get("city"))
+        final_code, final_country = country(final_destination.get("countryCode"))
+        has_final_destination = final_city and final_code and final_code != code
+        destination_city = final_city if has_final_destination else city
+        destination_region = (clean(final_destination.get("stateOrProvince")) or final_country) if has_final_destination else region
+        destination_code = final_code if has_final_destination else code
+        destination_country = final_country if has_final_destination else name
         order_key = clean(order.get("orderId")) or f"api-row-{index}"
         for item in order.get("lineItems") or []:
             title = clean(item.get("title") or item.get("lineItemId") or "Game")
             result.append(LineItem(
                 private_order_key=order_key,
-                city=city,
-                region=region,
-                country_code=code,
-                country_name=name,
+                city=destination_city,
+                region=destination_region,
+                country_code=destination_code,
+                country_name=destination_country,
                 month=month_of(order.get("creationDate")),
                 title=title,
                 quantity=quantity_of(item.get("quantity")),
+                hub_city=city if has_final_destination else "",
+                hub_region=region if has_final_destination else "",
+                hub_country_code=code if has_final_destination else "",
+                hub_country_name=name if has_final_destination else "",
             ))
     return result
 
@@ -187,6 +236,7 @@ def group_packages(items: Iterable[LineItem]) -> list[Package]:
         line_key = (
             item.private_order_key, item.city.casefold(), item.region.casefold(),
             item.country_code, item.month, item.title.casefold(), item.quantity,
+            item.hub_city.casefold(), item.hub_region.casefold(), item.hub_country_code,
         )
         if line_key in seen_lines:
             continue
@@ -194,6 +244,8 @@ def group_packages(items: Iterable[LineItem]) -> list[Package]:
         package = grouped.setdefault(item.private_order_key, Package(
             city=item.city, region=item.region, country_code=item.country_code,
             country_name=item.country_name, month=item.month,
+            hub_city=item.hub_city, hub_region=item.hub_region,
+            hub_country_code=item.hub_country_code, hub_country_name=item.hub_country_name,
         ))
         package.titles.extend([item.title] * item.quantity)
         package.game_count += item.quantity
@@ -272,7 +324,7 @@ def public_records(packages: Iterable[Package], resolver: CityResolver, origin: 
         if not coords:
             print(f"Skipping unresolved city: {package.city}, {package.region}, {package.country_code}", file=sys.stderr)
             continue
-        staged.append({
+        record = {
             "city": package.city,
             "region": package.region,
             "country": package.country_name,
@@ -282,7 +334,18 @@ def public_records(packages: Iterable[Package], resolver: CityResolver, origin: 
             "distanceMiles": haversine_miles(origin, coords),
             "gameCount": package.game_count,
             "titles": sorted(package.titles, key=str.casefold),
-        })
+        }
+        if package.hub_city:
+            hub_coords = resolver.resolve(package.hub_city, package.hub_region, package.hub_country_code)
+            if hub_coords:
+                record["via"] = {
+                    "city": package.hub_city,
+                    "region": package.hub_region,
+                    "country": package.hub_country_name,
+                    "lat": hub_coords[0],
+                    "lng": hub_coords[1],
+                }
+        staged.append(record)
 
     occurrences: Counter[str] = Counter()
     for record in sorted(staged, key=lambda x: (x["month"], x["city"], x["titles"])):
@@ -301,14 +364,41 @@ def merge_existing(new: list[dict], existing_path: Path | None) -> list[dict]:
     return list(merged.values())
 
 
+def remove_superseded_hub_records(records: list[dict], replacements: list[dict]) -> list[dict]:
+    """Remove the old hub-only form of a newly recovered multi-leg shipment."""
+    superseded = Counter()
+    for record in replacements:
+        via = record.get("via")
+        if not via:
+            continue
+        superseded[(
+            via["city"].casefold(), via["region"].casefold(), via["country"].casefold(),
+            record["month"], tuple(title.casefold() for title in record["titles"]), record["gameCount"],
+        )] += 1
+
+    kept: list[dict] = []
+    for record in records:
+        key = (
+            record["city"].casefold(), record["region"].casefold(), record["country"].casefold(),
+            record["month"], tuple(title.casefold() for title in record["titles"]), record["gameCount"],
+        )
+        if superseded[key] and not record.get("via"):
+            superseded[key] -= 1
+            continue
+        kept.append(record)
+    return kept
+
+
 def validate_public(records: list[dict]) -> None:
     for record in records:
         keys = set(record)
-        if keys != PUBLIC_PACKAGE_KEYS:
+        if not PUBLIC_PACKAGE_KEYS.issubset(keys) or keys - PUBLIC_PACKAGE_KEYS - OPTIONAL_PUBLIC_PACKAGE_KEYS:
             raise ValueError(f"Public package schema violation: {sorted(keys ^ PUBLIC_PACKAGE_KEYS)}")
         for key in keys:
             if any(term in key.casefold() for term in FORBIDDEN_OUTPUT_TERMS):
                 raise ValueError(f"Forbidden public field: {key}")
+        if "via" in record and set(record["via"]) != PUBLIC_VIA_KEYS:
+            raise ValueError("Public via schema violation")
 
 
 def build_payload(records: list[dict], origin_name: str, origin: tuple[float, float]) -> dict:
@@ -340,6 +430,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=Path("public/data/shipments.json"))
     parser.add_argument("--cache", type=Path, default=Path("data/city-cache.json"))
     parser.add_argument("--existing", type=Path, help="Existing public dataset to merge for rolling API updates")
+    parser.add_argument("--replace-hub-records", action="store_true", help="Replace matching hub-only records when final destinations are recovered")
     parser.add_argument("--origin", default="Salem, Massachusetts, United States")
     parser.add_argument("--offline", action="store_true", help="Use cached geocodes only")
     args = parser.parse_args()
@@ -352,8 +443,10 @@ def main() -> int:
         raise SystemExit("Origin could not be geocoded; run once online to populate the cache.")
 
     items = load_line_items(args.input)
-    records = public_records(group_packages(items), resolver, origin)
-    records = merge_existing(records, args.existing)
+    new_records = public_records(group_packages(items), resolver, origin)
+    records = merge_existing(new_records, args.existing)
+    if args.replace_hub_records:
+        records = remove_superseded_hub_records(records, new_records)
     validate_public(records)
     payload = build_payload(records, f"{origin_city}, {origin_region}", origin)
     args.output.parent.mkdir(parents=True, exist_ok=True)

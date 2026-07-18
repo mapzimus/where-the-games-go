@@ -6,11 +6,12 @@ An interactive map built from real sales data from North Shore Nostalgia, my eBa
 
 ## What makes this portfolio-ready
 
-- A designed, responsive Leaflet experience rather than a default pin map
+- A designed, responsive MapLibre 3D globe rather than a default pin map
 - Package and game counts, combined distance, regional reach, search, and time/place filters
 - Real generalized sales data from North Shore Nostalgia
 - One package per eBay order, with multi-item orders grouped correctly
 - City-centroid geocoding and approximate great-circle distance calculations
+- Two-stage eBay International Shipping journeys when the export includes both the domestic hub and final country
 - A hard privacy boundary enforced in code and tests
 - An optional eBay API sync every six hours through GitHub Actions
 
@@ -25,9 +26,12 @@ The public file contains only:
 - sale month (never the exact day);
 - game title and quantity;
 - approximate city-to-city distance; and
+- an optional city-level `via` location for an eBay international handoff; and
 - an opaque ID derived only from already-public generalized fields.
 
 The raw eBay export and API response belong in `private/`, which is gitignored. `scripts/build_map_data.py` uses an allow-list for every public package field, and the test suite verifies that representative PII never crosses the boundary.
+
+For eBay International Shipping orders, the pipeline uses the buyer city/region/country as the destination and the domestic ship-to city as a safe handoff point. Older records whose stored export ends at the Illinois hub remain marked as hub-only; the map does not infer or invent their final destinations.
 
 ## Run locally
 
@@ -78,4 +82,4 @@ The tests cover package grouping, approximate distance, safe-history merging, th
 
 ## Projection and distance note
 
-Coordinates are stored in WGS 84 (EPSG:4326) and displayed by Leaflet in Web Mercator (EPSG:3857), the web-mapping standard. Distances use a great-circle calculation on latitude/longitude, which is appropriate for an approximate national flow map. They are not road mileage or carrier routes.
+Coordinates are stored in WGS 84 (EPSG:4326) and displayed with MapLibre's globe projection, which smoothly transitions toward Web Mercator as the user zooms in. Routes are densified great-circle arcs so they follow the sphere. Distances use the same great-circle model and remain approximate city-to-city measurements, not road mileage or carrier routes.

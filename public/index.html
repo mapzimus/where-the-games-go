@@ -10,11 +10,12 @@
     <meta property="og:image" content="social-preview.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Where My Ebay Packages Have Travelled</title>
+    <link rel="icon" href="data:," />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <link rel="stylesheet" href="styles.css?v=stats-2" />
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" />
+    <link rel="stylesheet" href="styles.css?v=globe-2" />
   </head>
   <body>
     <main class="shell">
@@ -35,7 +36,7 @@
         <article><strong id="stat-packages">—</strong><span>packages</span></article>
         <article><strong id="stat-cities">—</strong><span>destination cities</span></article>
         <article><strong id="stat-miles">—</strong><span>combined miles</span></article>
-        <article><strong id="stat-regions">—</strong><span>states & territories</span></article>
+        <article><strong id="stat-regions">—</strong><span>states & regions</span></article>
       </section>
 
       <section class="map-panel">
@@ -65,11 +66,16 @@
           </div>
         </div>
         <div class="map-wrap">
-          <div id="map" aria-label="Interactive map of generalized package destinations"></div>
+          <div id="map" aria-label="Interactive 3D globe of generalized package destinations"></div>
+          <div class="globe-badge" aria-hidden="true">3D GLOBE · DRAG TO ROTATE</div>
+          <button class="map-reset" id="reset-globe" type="button">Reset globe</button>
+          <button class="international-status" id="international-status" type="button" title="Tour mapped international destinations" hidden></button>
           <div class="map-key">
             <span><i class="key-origin"></i> Salem origin</span>
             <span><i class="key-destination"></i> Destination city</span>
             <span><i class="key-route"></i> Approximate journey</span>
+            <span><i class="key-hub"></i> eBay international hub</span>
+            <span><i class="key-onward"></i> Onward international leg</span>
           </div>
           <div id="empty-state" hidden>No journeys match those filters.</div>
         </div>
@@ -144,12 +150,12 @@
 
       <footer>
         <span>NORTH SHORE NOSTALGIA</span>
-        <p>Built from real eBay sales data from North Shore Nostalgia · Map © OpenStreetMap contributors</p>
+        <p>Built from real eBay sales data from North Shore Nostalgia · Map © OpenFreeMap and OpenStreetMap contributors</p>
         <p id="updated-at">Data not yet generated</p>
       </footer>
     </main>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="app.js?v=stats-3"></script>
+    <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
+    <script src="app.js?v=globe-2"></script>
   </body>
 </html>

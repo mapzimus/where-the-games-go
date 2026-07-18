@@ -199,6 +199,10 @@
     "lat": 45.48717,
     "lng": -122.80378
   },
+  "bedford|in|US": {
+    "lat": 38.86116,
+    "lng": -86.48721
+  },
   "bedford|va|US": {
     "lat": 37.31239,
     "lng": -79.5399
@@ -242,6 +246,10 @@
   "berlin center|oh|US": {
     "lat": 41.0245,
     "lng": -80.94759
+  },
+  "berwick|pa|US": {
+    "lat": 41.0602,
+    "lng": -76.24613
   },
   "bethlehem|ga|US": {
     "lat": 33.93288,
@@ -1778,6 +1786,10 @@
     "lat": 43.03865,
     "lng": -87.90908
   },
+  "milwaukie|or|US": {
+    "lat": 45.44401,
+    "lng": -122.64125
+  },
   "minneapolis|mn|US": {
     "lat": 44.9773,
     "lng": -93.26547
@@ -1809,6 +1821,10 @@
   "moorhead|mn|US": {
     "lat": 46.87391,
     "lng": -96.75387
+  },
+  "mooroopna|vic|AU": {
+    "lat": -36.39449,
+    "lng": 145.36018
   },
   "moosic|pa|US": {
     "lat": 41.35341,
@@ -2498,6 +2514,10 @@
     "lat": 38.44049,
     "lng": -122.7141
   },
+  "santiago|region metropolitana|CL": {
+    "lat": -33.4377,
+    "lng": -70.65107
+  },
   "sarasota|fl|US": {
     "lat": 27.33658,
     "lng": -82.53085
@@ -2730,6 +2750,10 @@
     "lat": 35.37373,
     "lng": -83.22592
   },
+  "syracuse|ut|US": {
+    "lat": 41.08959,
+    "lng": -112.06389
+  },
   "tacoma|wa|US": {
     "lat": 47.2455,
     "lng": -122.43833
@@ -2929,6 +2953,10 @@
   "wellington|fl|US": {
     "lat": 26.65496,
     "lng": -80.23753
+  },
+  "wellington|ky|US": {
+    "lat": 38.21646,
+    "lng": -85.66913
   },
   "wenatchee|wa|US": {
     "lat": 47.42346,
