@@ -230,6 +230,7 @@ def test_dashboard_includes_filter_aware_sales_records():
     for record_id in ("record-month", "record-year", "record-state", "record-city", "record-average", "record-median", "record-repeat", "record-longhaul", "record-spend-state", "record-profit-month", "record-intl-market"):
         assert f'id="{record_id}"' in html
     assert 'id="stat-cities"' in html
+    assert "states, countries, provinces & territories" in html
     assert 'id="stat-games"' not in html
     assert 'id="play-timeline"' in html
     assert "function renderRecords(packages)" in javascript
