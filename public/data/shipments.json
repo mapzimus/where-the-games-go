@@ -1,18 +1,354 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-19T00:03:48.025696Z",
+  "generatedAt": "2026-07-19T00:36:26.644444Z",
   "origin": {
     "name": "Salem, Massachusetts",
     "lat": 42.51953,
     "lng": -70.89672
   },
   "summary": {
-    "packages": 1009,
-    "games": 1009,
-    "miles": 1221040,
-    "regions": 59
+    "packages": 1035,
+    "games": 1035,
+    "miles": 1270038,
+    "regions": 63
   },
   "packages": [
+    {
+      "city": "Tigard",
+      "region": "OR",
+      "country": "United States",
+      "lat": 45.43075,
+      "lng": -122.77193,
+      "month": "2023-03",
+      "distanceMiles": 2542,
+      "gameCount": 1,
+      "titles": [
+        "ELVIS PRESLEY~LITTLE SISTER~HIS LATEST FLAME~SLEEVE ONLY~RCA 47-7908~ POP"
+      ],
+      "id": "journey-2493f061d014-1"
+    },
+    {
+      "city": "holland",
+      "region": "OH",
+      "country": "United States",
+      "lat": 41.62172,
+      "lng": -83.7116,
+      "month": "2023-03",
+      "distanceMiles": 660,
+      "gameCount": 1,
+      "titles": [
+        "THE BEATLES SLEEVE & VINYL Matchbox/Slow Down 45 rpm"
+      ],
+      "id": "journey-a86920ee309e-1"
+    },
+    {
+      "city": "holland",
+      "region": "OH",
+      "country": "United States",
+      "lat": 41.62172,
+      "lng": -83.7116,
+      "month": "2023-03",
+      "distanceMiles": 660,
+      "gameCount": 1,
+      "titles": [
+        "Rolling Stone 45 rpm It's All Over Now & Good Times Bad Times Fan Club Sleeve"
+      ],
+      "id": "journey-e92ab7b82c5d-1"
+    },
+    {
+      "city": "Fort Worth",
+      "region": "TX",
+      "country": "United States",
+      "lat": 32.75318,
+      "lng": -97.33275,
+      "month": "2023-04",
+      "distanceMiles": 1587,
+      "gameCount": 1,
+      "titles": [
+        "Grand Funk - We're An American Band - Gold Vinyl 45 Rec.& PS 1973 Original"
+      ],
+      "id": "journey-abede6728674-1"
+    },
+    {
+      "city": "Hayes",
+      "region": "VA",
+      "country": "United States",
+      "lat": 37.2782,
+      "lng": -76.50384,
+      "month": "2023-04",
+      "distanceMiles": 468,
+      "gameCount": 1,
+      "titles": [
+        "Abba - Dancing Queen / That's Me - Atlantic Records 45 RPM 45-3372 - VG"
+      ],
+      "id": "journey-0ec67ee46e83-1"
+    },
+    {
+      "city": "New York",
+      "region": "NY",
+      "country": "United States",
+      "lat": 40.71273,
+      "lng": -74.00602,
+      "month": "2023-04",
+      "distanceMiles": 203,
+      "gameCount": 1,
+      "titles": [
+        "FLEETWOOD MAC: go your own way / Silver Springs WB 7\" Single 45 RPM"
+      ],
+      "id": "journey-a6693be95a23-1"
+    },
+    {
+      "city": "Oregon",
+      "region": "OH",
+      "country": "United States",
+      "lat": 41.64366,
+      "lng": -83.48688,
+      "month": "2023-04",
+      "distanceMiles": 648,
+      "gameCount": 1,
+      "titles": [
+        "The Beatles A Hard Day's Night 45 Capitol 5222 w/ Picture Sleeve"
+      ],
+      "id": "journey-f28f8ee7025f-1"
+    },
+    {
+      "city": "Philadelphia",
+      "region": "PA",
+      "country": "United States",
+      "lat": 39.95272,
+      "lng": -75.16353,
+      "month": "2023-04",
+      "distanceMiles": 284,
+      "gameCount": 1,
+      "titles": [
+        "THE BEACH BOYS WHY DO FOOLS FALL IN LOVE/FUN FUN FUN 45 RPM 7'' W/Pic Sleeve"
+      ],
+      "id": "journey-6a73c7e2c9c3-1"
+    },
+    {
+      "city": "West Allis",
+      "region": "WI",
+      "country": "United States",
+      "lat": 43.01668,
+      "lng": -88.00703,
+      "month": "2023-04",
+      "distanceMiles": 867,
+      "gameCount": 1,
+      "titles": [
+        "1973 David Bowie Space Oddity b/w Man Who Sold the World PS & Record"
+      ],
+      "id": "journey-8b6477c3affc-1"
+    },
+    {
+      "city": "Cottonwood Shores",
+      "region": "TX",
+      "country": "United States",
+      "lat": 30.55575,
+      "lng": -98.32391,
+      "month": "2023-05",
+      "distanceMiles": 1721,
+      "gameCount": 1,
+      "titles": [
+        "The Beatles - Hello Goodbye / I Am The Walrus On Capitol Records 45rpm 7”"
+      ],
+      "id": "journey-a48b56f7d5ce-1"
+    },
+    {
+      "city": "Westbrook",
+      "region": "ME",
+      "country": "United States",
+      "lat": 43.6763,
+      "lng": -70.36639,
+      "month": "2023-05",
+      "distanceMiles": 84,
+      "gameCount": 1,
+      "titles": [
+        "KOBE BRYANT ROOKIE REWIND CARD INSERT ULTRA LAKERS JERSEY #8"
+      ],
+      "id": "journey-35ec5d9d60b8-1"
+    },
+    {
+      "city": "Buckhannon",
+      "region": "WV",
+      "country": "United States",
+      "lat": 38.99394,
+      "lng": -80.23227,
+      "month": "2023-06",
+      "distanceMiles": 546,
+      "gameCount": 1,
+      "titles": [
+        "Vinyl 45 Record Aerosmith Dream On / Somebody 1977 Columbia"
+      ],
+      "id": "journey-1c82b4abbe38-1"
+    },
+    {
+      "city": "San Antonio",
+      "region": "TX",
+      "country": "United States",
+      "lat": 29.4246,
+      "lng": -98.49514,
+      "month": "2023-06",
+      "distanceMiles": 1777,
+      "gameCount": 1,
+      "titles": [
+        "Elvis Presley 7”/RPM 45 / Rock A Hula Baby/Cant help falling in love RCA NO P/S"
+      ],
+      "id": "journey-f467b5b5c734-1"
+    },
+    {
+      "city": "Sherman Oaks",
+      "region": "CA",
+      "country": "United States",
+      "lat": 34.15087,
+      "lng": -118.44899,
+      "month": "2023-06",
+      "distanceMiles": 2606,
+      "gameCount": 1,
+      "titles": [
+        "Queen 45 RPM Vinyl Record We Will Rock You/We Are The Champions with Pic Sleeve"
+      ],
+      "id": "journey-ee896e678754-1"
+    },
+    {
+      "city": "Tokyo",
+      "region": "Japan",
+      "country": "Japan",
+      "lat": 35.65695,
+      "lng": 139.6969,
+      "month": "2023-06",
+      "distanceMiles": 6701,
+      "gameCount": 1,
+      "titles": [
+        "Don't Worry Baby, I Get Around * by Beach Boys (7\" w/ PS, 1964, Capitol)"
+      ],
+      "id": "journey-093851b5fb27-1"
+    },
+    {
+      "city": "Knoxville",
+      "region": "TN",
+      "country": "United States",
+      "lat": 35.96039,
+      "lng": -83.92103,
+      "month": "2023-07",
+      "distanceMiles": 830,
+      "gameCount": 1,
+      "titles": [
+        "Lipps Inc: Funkytown / All Night Dancing 7\" Record 45 RPM, 1979 Casablanca"
+      ],
+      "id": "journey-1310f30c6825-1"
+    },
+    {
+      "city": "Miami",
+      "region": "FL",
+      "country": "United States",
+      "lat": 25.77416,
+      "lng": -80.1936,
+      "month": "2023-09",
+      "distanceMiles": 1271,
+      "gameCount": 1,
+      "titles": [
+        "Billy Joel Just The Way You Are / Get It Right The First Time 45 Vinyl Record"
+      ],
+      "id": "journey-b352bce2d313-1"
+    },
+    {
+      "city": "port saint lucie",
+      "region": "FL",
+      "country": "United States",
+      "lat": 27.29393,
+      "lng": -80.35033,
+      "month": "2023-09",
+      "distanceMiles": 1179,
+      "gameCount": 1,
+      "titles": [
+        "JOHN LENNON - MIND GAMES / MEAT CITY - APPLE 1868 W/PICTURE SLEEVE MINT-"
+      ],
+      "id": "journey-aa6c1e110886-1"
+    },
+    {
+      "city": "Rosemont",
+      "region": "IL",
+      "country": "United States",
+      "lat": 41.99413,
+      "lng": -87.87567,
+      "month": "2023-10",
+      "distanceMiles": 868,
+      "gameCount": 1,
+      "titles": [
+        "The Allman Brothers Band - Ramblin' Man/Pony Boy, 45 RPM Vinyl, Capricorn - 1973"
+      ],
+      "id": "journey-06594e6d9801-1"
+    },
+    {
+      "city": "Chico",
+      "region": "CA",
+      "country": "United States",
+      "lat": 39.72849,
+      "lng": -121.83748,
+      "month": "2023-12",
+      "distanceMiles": 2618,
+      "gameCount": 1,
+      "titles": [
+        "SUPREMES: baby love / ask any girl MOTOWN 7\" Single 45 RPM"
+      ],
+      "id": "journey-af321c3ced75-1"
+    },
+    {
+      "city": "Hydes",
+      "region": "MD",
+      "country": "United States",
+      "lat": 39.484,
+      "lng": -76.4933,
+      "month": "2024-01",
+      "distanceMiles": 359,
+      "gameCount": 1,
+      "titles": [
+        "Scott McKenzie - San Francisco /Like An Old-Time Movie - 60s Rock 45 EX VINYL"
+      ],
+      "id": "journey-9e743cfba354-1"
+    },
+    {
+      "city": "Pittsburg",
+      "region": "CA",
+      "country": "United States",
+      "lat": 38.02677,
+      "lng": -121.88539,
+      "month": "2024-01",
+      "distanceMiles": 2665,
+      "gameCount": 1,
+      "titles": [
+        "45 RPM Vinyl Record Brenda Lee My Whole World is Falling Down VG"
+      ],
+      "id": "journey-8c1b20b97319-1"
+    },
+    {
+      "city": "West Hartford",
+      "region": "CT",
+      "country": "United States",
+      "lat": 41.76204,
+      "lng": -72.74204,
+      "month": "2024-01",
+      "distanceMiles": 108,
+      "gameCount": 1,
+      "titles": [
+        "John Lennon Imagine It's So Hard 1971 Vinyl Record 45rpm 7 Inch Two White Apples"
+      ],
+      "id": "journey-4e998799406e-1"
+    },
+    {
+      "city": "Pittsburg",
+      "region": "CA",
+      "country": "United States",
+      "lat": 38.02677,
+      "lng": -121.88539,
+      "month": "2024-02",
+      "distanceMiles": 2665,
+      "gameCount": 1,
+      "titles": [
+        "Elvis Presley It Hurts Me Kissin Cousins Record 45 7in Vintage RCA Victor 478307"
+      ],
+      "id": "journey-eaf77e619556-1"
+    },
     {
       "city": "Barrington",
       "region": "IL",
@@ -124,6 +460,20 @@
         "Super Monkey Ball 2 (Nintendo GameCube, 2002) CIB Tested & Working Black Label"
       ],
       "id": "journey-3a081b4b31b2-1"
+    },
+    {
+      "city": "Okinawa",
+      "region": "Okinawa",
+      "country": "Japan",
+      "lat": 26.47499,
+      "lng": 127.91153,
+      "month": "2024-03",
+      "distanceMiles": 7521,
+      "gameCount": 1,
+      "titles": [
+        "Mario Party 7 (GameCube, 2005) CIB Tested & Working"
+      ],
+      "id": "journey-ea9654f1ce16-1"
     },
     {
       "city": "Olathe",
@@ -308,6 +658,27 @@
       "id": "journey-e34405c56daf-1"
     },
     {
+      "city": "Chandigarh",
+      "region": "Uttaranchal",
+      "country": "India",
+      "lat": 29.88438,
+      "lng": 77.87803,
+      "month": "2024-04",
+      "distanceMiles": 7055,
+      "gameCount": 1,
+      "titles": [
+        "Prince of Persia: The Sands of Time (Microsoft Xbox, 2003)"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-289e869c3ffd-1"
+    },
+    {
       "city": "Cisco",
       "region": "TX",
       "country": "United States",
@@ -488,34 +859,6 @@
         "Call of Duty: Modern Warfare 3 (Xbox 360, 2011) CIB Complete with Manual"
       ],
       "id": "journey-b755e088f306-1"
-    },
-    {
-      "city": "Glendale Heights",
-      "region": "IL",
-      "country": "United States",
-      "lat": 41.91895,
-      "lng": -88.07657,
-      "month": "2024-04",
-      "distanceMiles": 879,
-      "gameCount": 1,
-      "titles": [
-        "NFL Blitz 20-03 (Nintendo GameCube, 2002) CIB Tested"
-      ],
-      "id": "journey-54d294eeb668-1"
-    },
-    {
-      "city": "Glendale Heights",
-      "region": "IL",
-      "country": "United States",
-      "lat": 41.91895,
-      "lng": -88.07657,
-      "month": "2024-04",
-      "distanceMiles": 879,
-      "gameCount": 1,
-      "titles": [
-        "Prince of Persia: The Sands of Time (Microsoft Xbox, 2003)"
-      ],
-      "id": "journey-ef19c1e8e0c8-1"
     },
     {
       "city": "Hancock",
@@ -936,6 +1279,27 @@
         "Cabela's Outdoor Adventures (Nintendo GameCube, 2005) CIB"
       ],
       "id": "journey-e3acdeb11e77-1"
+    },
+    {
+      "city": "monterrey",
+      "region": "nuevo león",
+      "country": "Mexico",
+      "lat": 25.6802,
+      "lng": -100.31526,
+      "month": "2024-04",
+      "distanceMiles": 2029,
+      "gameCount": 1,
+      "titles": [
+        "NFL Blitz 20-03 (Nintendo GameCube, 2002) CIB Tested"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-de3e5934487d-1"
     },
     {
       "city": "Albuquerque",
@@ -1748,6 +2112,20 @@
         "GameCube Games Lot Of 50- Some CIB Mario Party Smash Sunshine Kirby Sonic Luigi"
       ],
       "id": "journey-be1f77e285dd-1"
+    },
+    {
+      "city": "North Brunswick",
+      "region": "NJ",
+      "country": "United States",
+      "lat": 40.45392,
+      "lng": -74.47655,
+      "month": "2025-05",
+      "distanceMiles": 234,
+      "gameCount": 1,
+      "titles": [
+        "Authentic Pokémon Gameboy Advance GBA Lot System And 11 Pokémon Games In Case"
+      ],
+      "id": "journey-c96138fcc153-1"
     },
     {
       "city": "Novato",
@@ -14195,5 +14573,14 @@
       ],
       "id": "journey-9488999dd20a-1"
     }
-  ]
+  ],
+  "financialHighlights": {
+    "topSpendingState": {
+      "label": "Florida",
+      "sharePct": 10.9
+    },
+    "bestEstimatedMarginMonth": "2025-05",
+    "topInternationalMarket": "Canada",
+    "disclosure": "Aggregate rankings only; dollar amounts remain private."
+  }
 }

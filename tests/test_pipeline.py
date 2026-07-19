@@ -26,6 +26,7 @@ class FakeResolver:
             "Boston": (42.3601, -71.0589),
             "Portland": (45.5152, -122.6784),
             "Mooroopna": (-36.39, 145.36),
+            "Okinawa": (26.47, 127.91),
             "Glendale Heights": (41.91, -88.08),
         }.get(city)
 
@@ -86,6 +87,41 @@ def test_international_csv_uses_final_city_and_keeps_only_safe_hub(tmp_path):
     serialized = json.dumps(record)
     for secret in ("Private Buyer", "1 Private Road", "2 Hub Street", "private-order"):
         assert secret not in serialized
+
+
+def test_fpo_pacific_zip_is_generalized_to_okinawa(tmp_path):
+    source = tmp_path / "military.csv"
+    rows = [
+        ["Order Number", "Ship To Address 1", "Ship To City", "Ship To State", "Ship To Zip", "Ship To Country", "Item Title", "Quantity", "Sale Date", "eBay International Shipping"],
+        ["private-order", "Private Unit", "FPO", "AP", "private-postal", "United States", "Mario Party 7", "1", "Mar-26-24", "No"],
+    ]
+    with source.open("w", newline="", encoding="utf-8") as handle:
+        csv.writer(handle).writerows(rows)
+
+    item = read_ebay_csv(source)[0]
+    assert (item.city, item.region, item.country_code, item.country_name) == ("Okinawa", "Okinawa", "JP", "Japan")
+    record = public_records(group_packages([item]), FakeResolver(), (42.5195, -70.8967))[0]
+    serialized = json.dumps(record)
+    assert record["city"] == "Okinawa"
+    assert record["country"] == "Japan"
+    for secret in ("Private Unit", "private-postal", "private-order"):
+        assert secret not in serialized
+
+
+def test_transaction_report_recovers_older_city_level_orders(tmp_path):
+    source = tmp_path / "transactions.csv"
+    rows = [
+        ["Transaction report"],
+        ["Transaction creation date", "Type", "Order number", "Ship to city", "Ship to province/region/state", "Ship to country", "Item title", "Quantity"],
+        ["Mar 29, 2023", "Order", "private-order", "Holland", "OH", "US", "Beatles 45", "1"],
+        ["Mar 29, 2023", "Shipping label", "private-order", "--", "--", "--", "--", "--"],
+    ]
+    with source.open("w", newline="", encoding="utf-8") as handle:
+        csv.writer(handle).writerows(rows)
+
+    item = read_ebay_csv(source)[0]
+    assert (item.city, item.region, item.country_code, item.month) == ("Holland", "OH", "US", "2023-03")
+    assert item.title == "Beatles 45"
 
 
 def test_current_ebay_api_contact_schema_is_generalized(tmp_path):
@@ -151,6 +187,8 @@ def test_checked_in_dataset_respects_public_schema():
     assert payload["summary"]["games"] == sum(item["gameCount"] for item in payload["packages"])
     assert payload["summary"]["miles"] == sum(item["distanceMiles"] for item in payload["packages"])
     assert payload["summary"]["regions"] == len({(item["country"], item["region"]) for item in payload["packages"]})
+    assert payload["financialHighlights"]["topSpendingState"]["label"] == "Florida"
+    assert "$" not in json.dumps(payload["financialHighlights"])
 
 
 def test_pages_workflows_deploy_both_pushes_and_scheduled_refreshes():
@@ -189,7 +227,7 @@ def test_north_shore_nostalgia_store_link_is_present():
 def test_dashboard_includes_filter_aware_sales_records():
     html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
     javascript = (ROOT / "public" / "app.js").read_text(encoding="utf-8")
-    for record_id in ("record-month", "record-year", "record-state", "record-city", "record-average", "record-median", "record-repeat", "record-longhaul"):
+    for record_id in ("record-month", "record-year", "record-state", "record-city", "record-average", "record-median", "record-repeat", "record-longhaul", "record-spend-state", "record-profit-month", "record-intl-market"):
         assert f'id="{record_id}"' in html
     assert 'id="stat-cities"' in html
     assert 'id="stat-games"' not in html
@@ -203,7 +241,7 @@ def test_dashboard_includes_filter_aware_sales_records():
     assert 'id="reset-globe"' in html
     assert 'has("preview")' in javascript
     assert 'href="styles.css?v=globe-2"' in html
-    assert 'src="app.js?v=globe-2"' in html
+    assert 'src="app.js?v=globe-4"' in html
     assert 'id="international-status"' in html
     assert 'source: "onward-routes"' in javascript
     assert 'fetch("data/shipments.json", { cache: "no-store" })' in javascript

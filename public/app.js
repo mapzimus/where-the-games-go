@@ -69,6 +69,10 @@ function isHubOnly(pkg) {
   return !pkg.via && INTERNATIONAL_HUB_KEYS.has(cityKey(pkg));
 }
 
+function isInternationalDestination(pkg) {
+  return Boolean(pkg.via) || !["United States", "Puerto Rico"].includes(pkg.country);
+}
+
 function median(values) {
   if (!values.length) return null;
   const sorted = [...values].sort((a, b) => a - b);
@@ -104,6 +108,16 @@ function renderRecords(packages) {
   el("record-median").textContent = medianMiles === null ? "—" : `${fmt.format(medianMiles)} mi`;
   el("record-repeat").textContent = fmt.format(repeatDestinations);
   el("record-longhaul").textContent = fmt.format(longHaulTrips);
+
+  const financial = dataset.financialHighlights || {};
+  el("record-spend-state").textContent = financial.topSpendingState?.label || "—";
+  el("record-spend-state-detail").textContent = financial.topSpendingState
+    ? `${financial.topSpendingState.sharePct}% of U.S. gross sales`
+    : "aggregate rank unavailable";
+  el("record-profit-month").textContent = financial.bestEstimatedMarginMonth
+    ? formatMonth(financial.bestEstimatedMarginMonth)
+    : "—";
+  el("record-intl-market").textContent = financial.topInternationalMarket || "—";
 }
 
 function toVector([lng, lat]) {
@@ -206,7 +220,7 @@ function render(packages) {
   });
   visibleGroups = grouped;
   visibleHubGroups = hubGroups;
-  visibleInternational = packages.filter(pkg => pkg.via);
+  visibleInternational = packages.filter(isInternationalDestination);
 
   const origin = [dataset.origin.lng, dataset.origin.lat];
   const routeLines = [];
@@ -265,12 +279,12 @@ function render(packages) {
   el("stat-miles").textContent = fmt.format(Math.round(miles));
   el("stat-regions").textContent = fmt.format(regions);
   el("empty-state").hidden = packages.length > 0;
-  const internationalKnown = packages.filter(pkg => pkg.via).length;
+  const internationalKnown = packages.filter(isInternationalDestination).length;
   const internationalUnknown = packages.filter(isHubOnly).length;
   const internationalStatus = el("international-status");
   internationalStatus.hidden = internationalKnown + internationalUnknown === 0;
   internationalStatus.disabled = internationalKnown === 0;
-  internationalStatus.textContent = `${packageLabel(internationalKnown)} mapped beyond the hub · ${packageLabel(internationalUnknown)} hub-only${internationalKnown ? " · Tour mapped destinations" : ""}`;
+  internationalStatus.textContent = `${packageLabel(internationalKnown)} mapped internationally · ${packageLabel(internationalUnknown)} hub-only${internationalKnown ? " · Tour international destinations" : ""}`;
   renderRecords(packages);
 
   const farthest = [...packages].sort((a, b) => b.distanceMiles - a.distanceMiles)[0];

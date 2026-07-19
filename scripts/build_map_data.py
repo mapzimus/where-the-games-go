@@ -55,6 +55,17 @@ COUNTRY_CODES = {
     "mx": ("MX", "Mexico"), "mexico": ("MX", "Mexico"),
 }
 
+# Military mail is formatted as a domestic US address even when its physical
+# destination is overseas. The retained FPO/AP record was manually verified as
+# Okinawa and is generalized to an island-level point before publication.
+MILITARY_DESTINATIONS = {
+    ("FPO", "AP"): ("Okinawa", "Okinawa", "JP", "Japan"),
+}
+
+CITY_ALIASES = {
+    ("cottonwd shrs", "TX", "US"): ("Cottonwood Shores", "TX", "US"),
+}
+
 
 @dataclass
 class LineItem:
@@ -103,9 +114,10 @@ def month_of(value: object) -> str:
     iso = re.match(r"(\d{4})-(\d{2})", raw)
     if iso:
         return f"{iso.group(1)}-{iso.group(2)}"
-    for fmt in ("%b-%d-%y", "%b-%d-%Y", "%m/%d/%Y", "%m/%d/%y", "%d-%b-%y"):
+    for fmt in ("%b-%d-%y", "%b-%d-%Y", "%m/%d/%Y", "%m/%d/%y", "%d-%b-%y", "%b %d, %Y"):
         try:
-            return datetime.strptime(raw.split(" ")[0], fmt).strftime("%Y-%m")
+            candidate = raw if fmt == "%b %d, %Y" else raw.split(" ")[0]
+            return datetime.strptime(candidate, fmt).strftime("%Y-%m")
         except ValueError:
             pass
     return "Unknown"
@@ -118,17 +130,24 @@ def quantity_of(value: object) -> int:
         return 1
 
 
+def military_destination(city: object, region: object) -> tuple[str, str, str, str] | None:
+    return MILITARY_DESTINATIONS.get((clean(city).upper(), clean(region).upper()))
+
+
 def read_ebay_csv(path: Path) -> list[LineItem]:
     with path.open(encoding="utf-8-sig", errors="replace", newline="") as handle:
         rows = list(csv.reader(handle))
-    header_index = next(
-        (i for i, row in enumerate(rows[:30]) if "Order Number" in row and "Ship To City" in row),
-        None,
-    )
+    header_index = next((i for i, row in enumerate(rows[:30]) if (
+        ("Order Number" in row and "Ship To City" in row)
+        or ("Transaction creation date" in row and "Order number" in row and "Ship to city" in row)
+    )), None)
     if header_index is None:
         raise ValueError(f"Could not find the eBay order header in {path}")
 
     header = rows[header_index]
+    if "Transaction creation date" in header:
+        return read_transaction_rows(header, rows[header_index + 1:])
+
     result: list[LineItem] = []
     for index, values in enumerate(rows[header_index + 1:], start=1):
         row = dict(zip(header, values))
@@ -138,15 +157,19 @@ def read_ebay_csv(path: Path) -> list[LineItem]:
         if not ship_city or not ship_region or not title:
             continue
         ship_code, ship_name = country(row.get("Ship To Country"))
+        military = military_destination(ship_city, ship_region)
         is_ebay_international = clean(row.get("eBay International Shipping")).casefold() == "yes"
         buyer_city = clean(row.get("Buyer City"))
         buyer_region = clean(row.get("Buyer State"))
         buyer_code, buyer_country = country(row.get("Buyer Country"))
         has_final_destination = is_ebay_international and buyer_city and buyer_code and buyer_code != ship_code
-        city = buyer_city if has_final_destination else ship_city
-        code = buyer_code if has_final_destination else ship_code
-        name = buyer_country if has_final_destination else ship_name
-        region = (buyer_region or buyer_country) if has_final_destination else ship_region
+        if military:
+            city, region, code, name = military
+        else:
+            city = buyer_city if has_final_destination else ship_city
+            code = buyer_code if has_final_destination else ship_code
+            name = buyer_country if has_final_destination else ship_name
+            region = (buyer_region or buyer_country) if has_final_destination else ship_region
         order_key = clean(row.get("Order Number") or row.get("Sales Record Number"))
         if not order_key:
             order_key = f"csv-row-{index}"
@@ -163,6 +186,34 @@ def read_ebay_csv(path: Path) -> list[LineItem]:
             hub_region=ship_region if has_final_destination else "",
             hub_country_code=ship_code if has_final_destination else "",
             hub_country_name=ship_name if has_final_destination else "",
+        ))
+    return result
+
+
+def read_transaction_rows(header: list[str], rows: list[list[str]]) -> list[LineItem]:
+    """Read eBay transaction reports, which retain older city-level destinations."""
+    result: list[LineItem] = []
+    for values in rows:
+        row = dict(zip(header, values))
+        if clean(row.get("Type")).casefold() != "order":
+            continue
+        city = clean(row.get("Ship to city"))
+        region = clean(row.get("Ship to province/region/state"))
+        title = clean(row.get("Item title"))
+        if not city or city == "--" or not region or region == "--" or not title or title == "--":
+            continue
+        code, name = country(row.get("Ship to country"))
+        city, region, code = CITY_ALIASES.get((city.casefold(), region.upper(), code), (city, region, code))
+        _, name = country(code)
+        result.append(LineItem(
+            private_order_key=clean(row.get("Order number")),
+            city=city,
+            region=region,
+            country_code=code,
+            country_name=name,
+            month=month_of(row.get("Transaction creation date")),
+            title=title,
+            quantity=quantity_of(row.get("Quantity")),
         ))
     return result
 
@@ -361,7 +412,11 @@ def merge_existing(new: list[dict], existing_path: Path | None) -> list[dict]:
         return new
     existing = json.loads(existing_path.read_text(encoding="utf-8")).get("packages", [])
     merged = {record["id"]: record for record in existing}
-    merged.update({record["id"]: record for record in new})
+    for record in new:
+        previous = merged.get(record["id"])
+        if previous and previous.get("via") and not record.get("via"):
+            record = {**record, "via": previous["via"]}
+        merged[record["id"]] = record
     return list(merged.values())
 
 
@@ -402,9 +457,9 @@ def validate_public(records: list[dict]) -> None:
             raise ValueError("Public via schema violation")
 
 
-def build_payload(records: list[dict], origin_name: str, origin: tuple[float, float]) -> dict:
+def build_payload(records: list[dict], origin_name: str, origin: tuple[float, float], highlights: dict | None = None) -> dict:
     records.sort(key=lambda x: (x["month"], x["city"], x["id"]))
-    return {
+    payload = {
         "schemaVersion": 1,
         "generatedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "origin": {"name": origin_name, "lat": origin[0], "lng": origin[1]},
@@ -416,6 +471,9 @@ def build_payload(records: list[dict], origin_name: str, origin: tuple[float, fl
         },
         "packages": records,
     }
+    if highlights:
+        payload["financialHighlights"] = highlights
+    return payload
 
 
 def parse_origin(value: str) -> tuple[str, str, str]:
@@ -430,6 +488,7 @@ def main() -> int:
     parser.add_argument("--input", action="append", required=True, type=Path, help="Private eBay CSV or API JSON; repeatable")
     parser.add_argument("--output", type=Path, default=Path("public/data/shipments.json"))
     parser.add_argument("--cache", type=Path, default=Path("data/city-cache.json"))
+    parser.add_argument("--highlights", type=Path, default=Path("data/public-highlights.json"), help="Safe aggregate highlights with no dollar amounts")
     parser.add_argument("--existing", type=Path, help="Existing public dataset to merge for rolling API updates")
     parser.add_argument("--replace-hub-records", action="store_true", help="Replace matching hub-only records when final destinations are recovered")
     parser.add_argument("--origin", default="Salem, Massachusetts, United States")
@@ -449,7 +508,8 @@ def main() -> int:
     if args.replace_hub_records:
         records = remove_superseded_hub_records(records, new_records)
     validate_public(records)
-    payload = build_payload(records, f"{origin_city}, {origin_region}", origin)
+    highlights = json.loads(args.highlights.read_text(encoding="utf-8")) if args.highlights.exists() else None
+    payload = build_payload(records, f"{origin_city}, {origin_region}", origin, highlights)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Published {payload['summary']['packages']} packages / {payload['summary']['games']} games to {args.output}")

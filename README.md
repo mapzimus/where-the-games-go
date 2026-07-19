@@ -33,6 +33,8 @@ The raw eBay export and API response belong in `private/`, which is gitignored. 
 
 For eBay International Shipping orders, the pipeline uses the buyer city/region/country as the destination and the domestic ship-to city as a safe handoff point. Older records whose stored export ends at the Illinois hub remain marked as hub-only; the map does not infer or invent their final destinations.
 
+Military mail needs separate handling because eBay records overseas APO/FPO destinations as domestic US addresses. Verified military destinations are matched privately and published only as a broad city/island destination; the retained FPO/AP record is generalized to Okinawa, Japan. The military postal code and unit address never enter the public dataset.
+
 ## Run locally
 
 Python 3.11+ is recommended.
