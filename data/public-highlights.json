@@ -5,5 +5,11 @@
   },
   "bestEstimatedMarginMonth": "2025-05",
   "topInternationalMarket": "Canada",
-  "disclosure": "Aggregate rankings only; dollar amounts remain private."
+  "topGrossingConsole": {
+    "label": "Nintendo GameCube"
+  },
+  "topConsoleByUnits": {
+    "label": "PlayStation 2",
+    "gameCount": 370
+  }
 }

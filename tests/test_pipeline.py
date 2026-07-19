@@ -188,6 +188,8 @@ def test_checked_in_dataset_respects_public_schema():
     assert payload["summary"]["miles"] == sum(item["distanceMiles"] for item in payload["packages"])
     assert payload["summary"]["regions"] == len({(item["country"], item["region"]) for item in payload["packages"]})
     assert payload["financialHighlights"]["topSpendingState"]["label"] == "Florida"
+    assert payload["financialHighlights"]["topGrossingConsole"]["label"] == "Nintendo GameCube"
+    assert payload["financialHighlights"]["topConsoleByUnits"] == {"label": "PlayStation 2", "gameCount": 370}
     assert "$" not in json.dumps(payload["financialHighlights"])
 
 
@@ -220,6 +222,8 @@ def test_maplibre_globe_assets_and_projection_are_pinned():
 
 def test_north_shore_nostalgia_store_link_is_present():
     html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
+    assert "North Shore Nostalgia Sales Atlas" in html
+    assert "custom MapLibre mapping skill I created" in html
     assert 'href="https://ebay.us/m/Wg29dT"' in html
     assert 'rel="noopener"' in html
 
@@ -227,10 +231,10 @@ def test_north_shore_nostalgia_store_link_is_present():
 def test_dashboard_includes_filter_aware_sales_records():
     html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
     javascript = (ROOT / "public" / "app.js").read_text(encoding="utf-8")
-    for record_id in ("record-month", "record-year", "record-state", "record-city", "record-average", "record-median", "record-repeat", "record-longhaul", "record-spend-state", "record-profit-month", "record-intl-market"):
+    for record_id in ("record-month", "record-year", "record-state", "record-city", "record-average", "record-median", "record-repeat", "record-longhaul", "record-spend-state", "record-profit-month", "record-intl-market", "record-console-gross", "record-console-volume"):
         assert f'id="{record_id}"' in html
     assert 'id="stat-cities"' in html
-    assert "states, countries, provinces & territories" in html
+    assert "geographic regions reached" in html
     assert 'id="stat-games"' not in html
     assert 'id="play-timeline"' in html
     assert "function renderRecords(packages)" in javascript
@@ -241,8 +245,8 @@ def test_dashboard_includes_filter_aware_sales_records():
     assert 'California' in javascript
     assert 'id="reset-globe"' in html
     assert 'has("preview")' in javascript
-    assert 'href="styles.css?v=globe-4"' in html
-    assert 'src="app.js?v=globe-6"' in html
+    assert 'href="styles.css?v=atlas-1"' in html
+    assert 'src="app.js?v=atlas-1"' in html
     assert 'id="international-status"' in html
     assert 'source: "onward-routes"' in javascript
     assert 'source: "highlight-routes"' in javascript

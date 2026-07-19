@@ -3,27 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="A real-data map showing how far games have travelled from my eBay business, North Shore Nostalgia." />
-    <meta property="og:title" content="Where My Ebay Packages Have Travelled" />
-    <meta property="og:description" content="Real sales data from a few years of selling games through North Shore Nostalgia, generalized to city and town destinations." />
+    <meta name="description" content="A privacy-conscious spatial analysis of real eBay sales and shipment destinations from North Shore Nostalgia." />
+    <meta property="og:title" content="North Shore Nostalgia Sales Atlas" />
+    <meta property="og:description" content="An interactive globe mapping the geographic reach, shipment patterns, and console sales of an independent retro-game business." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="social-preview.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <title>Where My Ebay Packages Have Travelled</title>
+    <title>North Shore Nostalgia Sales Atlas</title>
     <link rel="icon" href="data:," />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="styles.css?v=globe-4" />
+    <link rel="stylesheet" href="styles.css?v=atlas-1" />
   </head>
   <body>
     <main class="shell">
       <header class="hero">
         <div>
-          <p class="eyebrow">NORTH SHORE NOSTALGIA</p>
-          <h1>Where My Ebay Packages Have Travelled</h1>
-          <p class="lede">I have been selling games for a few years through my eBay business, North Shore Nostalgia. This map uses my real sales data to show how far those packages have travelled from Salem, Massachusetts.</p>
+          <p class="eyebrow">INDEPENDENT RETRO-GAME COMMERCE · SALEM, MASSACHUSETTS</p>
+          <h1>North Shore Nostalgia <em>Sales Atlas</em></h1>
+          <p class="lede">A spatial analysis of several years of real eBay sales from North Shore Nostalgia. The atlas traces generalized shipment destinations from Salem to reveal the business’s geographic reach without publishing buyer addresses.</p>
         </div>
         <div class="hero-mark" aria-hidden="true">
           <span>42.52° N</span>
@@ -33,51 +33,51 @@
       </header>
 
       <section class="stats" aria-label="Shipment summary">
-        <article><strong id="stat-packages">—</strong><span>packages</span></article>
-        <article><strong id="stat-cities">—</strong><span>destination cities</span></article>
-        <article><strong id="stat-miles">—</strong><span>combined miles</span></article>
-        <article><strong id="stat-regions">—</strong><span>states, countries, provinces & territories</span></article>
+        <article><strong id="stat-packages">—</strong><span>orders mapped</span></article>
+        <article><strong id="stat-cities">—</strong><span>destination communities</span></article>
+        <article><strong id="stat-miles">—</strong><span>estimated route miles</span></article>
+        <article><strong id="stat-regions">—</strong><span>geographic regions reached</span></article>
       </section>
 
       <section class="map-panel">
         <div class="map-toolbar">
           <div>
-            <p class="section-kicker">THE JOURNEY</p>
-            <h2>From one shelf to another</h2>
+            <p class="section-kicker">SHIPMENT GEOGRAPHY</p>
+            <h2>Explore the order network</h2>
           </div>
           <div class="filters">
-            <label>When
-              <select id="filter-month"><option value="all">All time</option></select>
+            <label>Period
+              <select id="filter-month"><option value="all">All periods</option></select>
             </label>
-            <label>Where
-              <select id="filter-region"><option value="all">Everywhere</option></select>
+            <label>Destination
+              <select id="filter-region"><option value="all">All destinations</option></select>
             </label>
-            <label>Console
-              <select id="filter-console"><option value="all">All consoles</option></select>
+            <label>Platform
+              <select id="filter-console"><option value="all">All platforms</option></select>
             </label>
             <div class="region-view-control">
               <span>Region view</span>
               <div class="region-actions" role="group" aria-label="Region display mode">
                 <button id="region-highlight" type="button" aria-pressed="true">Highlight</button>
-                <button id="region-isolate" type="button" aria-pressed="false">Only show</button>
+                <button id="region-isolate" type="button" aria-pressed="false">Isolate</button>
               </div>
             </div>
             <div class="region-summary-control">
-              <span>Selected region</span>
-              <output id="region-status" aria-live="polite">Everywhere</output>
+              <span>Selection</span>
+              <output id="region-status" aria-live="polite">All destinations</output>
             </div>
-            <label class="search-label">Find a game
-              <input id="filter-title" type="search" placeholder="Try Mario, Zelda…" />
+            <label class="search-label">Search inventory
+              <input id="filter-title" type="search" placeholder="Title or franchise" />
             </label>
             <div class="timeline-control">
-              <span>Timeline</span>
+              <span>Playback</span>
               <div class="timeline-actions">
-                <button id="play-timeline" type="button" aria-pressed="false">Play timeline</button>
-                <output id="timeline-status" aria-live="polite">All time</output>
+                <button id="play-timeline" type="button" aria-pressed="false">Animate by month</button>
+                <output id="timeline-status" aria-live="polite">All periods</output>
               </div>
             </div>
             <div class="routes-control">
-              <span>Route lines</span>
+              <span>Route visibility</span>
               <div class="routes-actions">
                 <button id="toggle-routes" type="button" aria-pressed="true">Hide lines</button>
                 <input id="route-opacity" type="range" min="10" max="100" value="42" aria-label="Route line opacity" />
@@ -85,118 +85,130 @@
               </div>
             </div>
             <div class="international-control">
-              <span>International</span>
+              <span>International routes</span>
               <button class="international-status" id="international-status" type="button" title="Tour mapped international destinations" hidden></button>
             </div>
-            <button id="reset-filters" type="button">Reset</button>
+            <button id="reset-filters" type="button">Clear filters</button>
           </div>
         </div>
         <div class="map-wrap">
           <div id="map" aria-label="Interactive 3D globe of generalized package destinations"></div>
-          <div class="globe-badge" aria-hidden="true">3D GLOBE · DRAG TO ROTATE</div>
-          <button class="map-reset" id="reset-globe" type="button">Reset globe</button>
+          <div class="globe-badge" aria-hidden="true">INTERACTIVE GLOBE · DRAG TO ROTATE</div>
+          <button class="map-reset" id="reset-globe" type="button">Reset view</button>
           <div class="map-key">
-            <span><i class="key-origin"></i> Salem origin</span>
-            <span><i class="key-destination"></i> Destination city</span>
-            <span><i class="key-route"></i> Approximate journey</span>
-            <span><i class="key-selected"></i> Selected region</span>
-            <span><i class="key-hub"></i> eBay international hub</span>
-            <span><i class="key-onward"></i> Onward international leg</span>
+            <span><i class="key-origin"></i> Dispatch origin</span>
+            <span><i class="key-destination"></i> Order destination</span>
+            <span><i class="key-route"></i> Estimated route</span>
+            <span><i class="key-selected"></i> Selected geography</span>
+            <span><i class="key-hub"></i> eBay processing hub</span>
+            <span><i class="key-onward"></i> International continuation</span>
           </div>
-          <div id="empty-state" hidden>No journeys match those filters.</div>
+          <div id="empty-state" hidden>No shipments match the current filters.</div>
         </div>
       </section>
 
       <section class="records" aria-labelledby="records-title">
         <div class="records-heading">
           <div>
-            <p class="section-kicker">SALES RECORDS</p>
-            <h2 id="records-title">A few highlights from the journey</h2>
+            <p class="section-kicker">BUSINESS PROFILE</p>
+            <h2 id="records-title">Sales and distribution patterns</h2>
           </div>
-          <p>These records recalculate with the map filters.</p>
+          <p>Activity and destination metrics follow the active filters. Aggregate sales rankings summarize the available sales export.</p>
         </div>
         <div class="records-grid">
           <article>
-            <span>Biggest month</span>
+            <span>Highest-volume month</span>
             <strong id="record-month">—</strong>
             <p id="record-month-detail">— packages</p>
           </article>
           <article>
-            <span>Busiest year</span>
+            <span>Most active year</span>
             <strong id="record-year">—</strong>
             <p id="record-year-detail">— packages</p>
           </article>
           <article>
-            <span>Top destination state</span>
+            <span>Leading destination state</span>
             <strong id="record-state">—</strong>
             <p id="record-state-detail">— packages</p>
           </article>
           <article>
-            <span>Most-visited city</span>
+            <span>Most frequent destination</span>
             <strong id="record-city">—</strong>
             <p id="record-city-detail">— packages</p>
           </article>
           <article>
-            <span>Average journey</span>
+            <span>Mean shipment distance</span>
             <strong id="record-average">—</strong>
             <p>approximate miles per package</p>
           </article>
           <article>
-            <span>Median journey</span>
+            <span>Median shipment distance</span>
             <strong id="record-median">—</strong>
             <p>approximate miles per package</p>
           </article>
           <article>
-            <span>Repeat destinations</span>
+            <span>Repeat markets</span>
             <strong id="record-repeat">—</strong>
             <p>cities visited more than once</p>
           </article>
           <article>
-            <span>Long-haul trips</span>
+            <span>Long-distance shipments</span>
             <strong id="record-longhaul">—</strong>
             <p>packages travelling 2,000+ miles</p>
           </article>
           <article>
-            <span>Top-spending state</span>
+            <span>Leading state by gross sales</span>
             <strong id="record-spend-state">—</strong>
-            <p id="record-spend-state-detail">aggregate rank only</p>
+            <p id="record-spend-state-detail">share of U.S. gross sales</p>
           </article>
           <article>
-            <span>Best estimated-margin month</span>
+            <span>Peak estimated-margin month</span>
             <strong id="record-profit-month">—</strong>
             <p>based on estimated margin</p>
           </article>
           <article>
-            <span>Top international market</span>
+            <span>Leading international market</span>
             <strong id="record-intl-market">—</strong>
             <p>ranked by aggregate gross sales</p>
+          </article>
+          <article>
+            <span>Highest-grossing console</span>
+            <strong id="record-console-gross">—</strong>
+            <p>ranked by aggregate item sales</p>
+          </article>
+          <article>
+            <span>Highest-volume console</span>
+            <strong id="record-console-volume">—</strong>
+            <p id="record-console-volume-detail">ranked by games sold</p>
           </article>
         </div>
       </section>
 
       <section class="story-grid">
         <article class="farthest-card">
-          <p class="section-kicker">LONGEST JOURNEY</p>
+          <p class="section-kicker">MAXIMUM DISTANCE</p>
           <p class="distance" id="farthest-distance">— mi</p>
-          <h2 id="farthest-place">Waiting for the first trip</h2>
-          <p id="farthest-title">The farthest-travelled game will appear here.</p>
+          <h2 id="farthest-place">No matching destination</h2>
+          <p id="farthest-title">The longest matching shipment will appear here.</p>
         </article>
         <article class="method-card">
-          <p class="section-kicker">NORTH SHORE NOSTALGIA</p>
-          <h2>Real sales from my own game shop.</h2>
-          <p>This project is built from real eBay sales data from North Shore Nostalgia, my used-game business. Destinations are generalized to city and town centers so the map can show the journey without exposing buyer addresses.</p>
+          <p class="section-kicker">METHOD &amp; IMPLEMENTATION</p>
+          <h2>A custom globe workflow designed for route data.</h2>
+          <p>I rendered the project with <strong>Globe Maps</strong>, a custom MapLibre mapping skill I created for three-dimensional route visualization. It guided the globe projection, atmospheric treatment, style-load sequencing, densified great-circle geometry, selection behavior, and antimeridian handling that keep each route attached to the sphere.</p>
+          <p>A Python pipeline groups the eBay orders, generalizes destinations to city and town centroids, geocodes them, calculates estimated great-circle distance, and publishes only allow-listed fields. International orders are shown as two-stage journeys when the source export includes both the domestic handoff and final destination.</p>
           <a class="store-link" href="https://ebay.us/m/Wg29dT" target="_blank" rel="noopener">Visit North Shore Nostalgia on eBay</a>
         </article>
       </section>
 
       <footer>
         <span>NORTH SHORE NOSTALGIA</span>
-        <p>Built from real eBay sales data from North Shore Nostalgia · Map © OpenFreeMap and OpenStreetMap contributors</p>
+        <p>Spatial analysis and visualization by Maxwell Howe · Real North Shore Nostalgia sales data</p>
+        <p>Basemap © OpenFreeMap and OpenStreetMap contributors</p>
         <p id="updated-at">Data not yet generated</p>
       </footer>
     </main>
 
     <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
-    <script src="app.js?v=globe-6"></script>
+    <script src="app.js?v=atlas-1"></script>
   </body>
 </html>

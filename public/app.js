@@ -164,6 +164,11 @@ function renderRecords(packages) {
     ? formatMonth(financial.bestEstimatedMarginMonth)
     : "—";
   el("record-intl-market").textContent = financial.topInternationalMarket || "—";
+  el("record-console-gross").textContent = financial.topGrossingConsole?.label || "—";
+  el("record-console-volume").textContent = financial.topConsoleByUnits?.label || "—";
+  el("record-console-volume-detail").textContent = financial.topConsoleByUnits
+    ? `${fmt.format(financial.topConsoleByUnits.gameCount)} games sold`
+    : "ranking unavailable";
 }
 
 function toVector([lng, lat]) {
@@ -223,14 +228,14 @@ function popup(pkg) {
   const titles = pkg.titles.slice(0, 4).map(title => `<div class="popup-title">${escapeHtml(title)}</div>`).join("");
   const more = pkg.titles.length > 4 ? `<div class="popup-meta">+${pkg.titles.length - 4} more</div>` : "";
   const via = pkg.via ? `<div class="popup-meta popup-via">via ${escapeHtml(titleCase(pkg.via.city))}, ${escapeHtml(pkg.via.region)} · eBay international handoff</div>` : "";
-  return `<div class="popup-place">${escapeHtml(titleCase(pkg.city))}, ${escapeHtml(pkg.region)}</div>${via}${titles}${more}<div class="popup-meta">${fmt.format(pkg.distanceMiles)} approximate miles · ${escapeHtml(pkg.month)}</div>`;
+  return `<div class="popup-place">${escapeHtml(titleCase(pkg.city))}, ${escapeHtml(pkg.region)}</div>${via}${titles}${more}<div class="popup-meta">${fmt.format(pkg.distanceMiles)} estimated route miles · ${escapeHtml(pkg.month)}</div>`;
 }
 
 function groupedPopup(items) {
   const first = items[0];
   return items.length === 1
     ? popup(first)
-    : `<div class="popup-place">${escapeHtml(titleCase(first.city))}, ${escapeHtml(first.region)}</div><div class="popup-title">${fmt.format(items.length)} packages to this city</div><div class="popup-meta">Use the filters to narrow this destination.</div>`;
+    : `<div class="popup-place">${escapeHtml(titleCase(first.city))}, ${escapeHtml(first.region)}</div><div class="popup-title">${packageLabel(items.length)} mapped to this community</div><div class="popup-meta">Apply a period or platform filter to refine this destination.</div>`;
 }
 
 function hubPopup(group) {
@@ -359,7 +364,7 @@ function render(packages, highlightedRegion = null) {
   const internationalStatus = el("international-status");
   internationalStatus.hidden = internationalKnown + internationalUnknown === 0;
   internationalStatus.disabled = internationalKnown === 0;
-  internationalStatus.textContent = internationalKnown ? `Tour ${packageLabel(internationalKnown)}` : "No mapped destinations";
+  internationalStatus.textContent = internationalKnown ? `Tour ${fmt.format(internationalKnown)} international shipments` : "No mapped international destinations";
   internationalStatus.title = internationalUnknown
     ? `${packageLabel(internationalKnown)} mapped internationally; ${packageLabel(internationalUnknown)} hub-only`
     : `Tour ${packageLabel(internationalKnown)} mapped internationally`;
@@ -367,8 +372,8 @@ function render(packages, highlightedRegion = null) {
 
   const farthest = [...packages].sort((a, b) => b.distanceMiles - a.distanceMiles)[0];
   el("farthest-distance").textContent = farthest ? `${fmt.format(farthest.distanceMiles)} mi` : "— mi";
-  el("farthest-place").textContent = farthest ? `${titleCase(farthest.city)}, ${farthest.region}` : "Waiting for the first trip";
-  el("farthest-title").textContent = farthest ? farthest.titles.join(" · ") : "The farthest-travelled game will appear here.";
+  el("farthest-place").textContent = farthest ? `${titleCase(farthest.city)}, ${farthest.region}` : "No matching destination";
+  el("farthest-title").textContent = farthest ? farthest.titles.join(" · ") : "The longest matching shipment will appear here.";
 }
 
 function setupMapLayers() {
@@ -391,14 +396,14 @@ function setupMapLayers() {
     type: "line",
     source: "routes",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#7db7ff", "line-width": 1.1, "line-opacity": 0.78 }
+    paint: { "line-color": "#77a9d4", "line-width": 1.1, "line-opacity": 0.78 }
   });
   map.addLayer({
     id: "highlight-routes",
     type: "line",
     source: "highlight-routes",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#d6ff54", "line-width": 2.4, "line-opacity": 1 }
+    paint: { "line-color": "#8fd3c7", "line-width": 2.4, "line-opacity": 1 }
   });
   map.addLayer({
     id: "onward-route-casing",
@@ -412,14 +417,14 @@ function setupMapLayers() {
     type: "line",
     source: "onward-routes",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#ffd166", "line-width": 1.7, "line-opacity": 0.96, "line-dasharray": [2, 1.35] }
+    paint: { "line-color": "#e4bd6a", "line-width": 1.7, "line-opacity": 0.96, "line-dasharray": [2, 1.35] }
   });
   map.addLayer({
     id: "highlight-onward-routes",
     type: "line",
     source: "highlight-onward-routes",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#d6ff54", "line-width": 2.4, "line-opacity": 1, "line-dasharray": [2, 1.35] }
+    paint: { "line-color": "#8fd3c7", "line-width": 2.4, "line-opacity": 1, "line-dasharray": [2, 1.35] }
   });
   map.addLayer({
     id: "destinations",
@@ -427,8 +432,8 @@ function setupMapLayers() {
     source: "destinations",
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["get", "count"], 1, 4, 4, 7, 10, 11],
-      "circle-color": ["case", ["boolean", ["get", "selected"], false], "#d6ff54", "#ff735c"],
-      "circle-stroke-color": ["case", ["boolean", ["get", "selected"], false], "#d6ff54", "#111315"],
+      "circle-color": ["case", ["boolean", ["get", "selected"], false], "#8fd3c7", "#ef8c76"],
+      "circle-stroke-color": ["case", ["boolean", ["get", "selected"], false], "#8fd3c7", "#0a1117"],
       "circle-stroke-width": ["case", ["boolean", ["get", "selected"], false], 2.5, 1.5],
       "circle-opacity": ["case", ["boolean", ["get", "selected"], false], 1, 0.82]
     }
@@ -439,8 +444,8 @@ function setupMapLayers() {
     source: "international-hubs",
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["get", "count"], 1, 6, 10, 10],
-      "circle-color": ["case", ["boolean", ["get", "selected"], false], "#d6ff54", "#ffd166"],
-      "circle-stroke-color": ["case", ["boolean", ["get", "selected"], false], "#d6ff54", "#111315"],
+      "circle-color": ["case", ["boolean", ["get", "selected"], false], "#8fd3c7", "#e4bd6a"],
+      "circle-stroke-color": ["case", ["boolean", ["get", "selected"], false], "#8fd3c7", "#0a1117"],
       "circle-stroke-width": ["case", ["boolean", ["get", "selected"], false], 2.5, 2],
       "circle-opacity": 0.96
     }
@@ -449,7 +454,7 @@ function setupMapLayers() {
     id: "origin",
     type: "circle",
     source: "origin",
-    paint: { "circle-radius": 9, "circle-color": "#d6ff54", "circle-stroke-color": "#d6ff54", "circle-stroke-width": 2, "circle-blur": 0.08 }
+    paint: { "circle-radius": 9, "circle-color": "#8fd3c7", "circle-stroke-color": "#8fd3c7", "circle-stroke-width": 2, "circle-blur": 0.08 }
   });
   updateRouteAppearance();
 
@@ -522,15 +527,15 @@ function applyFilters() {
   render(visiblePackages, region === "all" ? null : region);
 
   const selectedOption = el("filter-region").selectedOptions[0];
-  const regionLabel = selectedOption?.textContent || "Everywhere";
+  const regionLabel = selectedOption?.textContent || "All destinations";
   el("region-status").textContent = region === "all"
-    ? `Everywhere · ${packageLabel(basePackages.length)}`
+    ? `All destinations · ${packageLabel(basePackages.length)}`
     : `${regionLabel} · ${packageLabel(regionPackages.length)}`;
   const regionActive = region !== "all";
   el("region-highlight").disabled = !regionActive;
   el("region-isolate").disabled = !regionActive;
   const selectedMonth = el("filter-month").value;
-  el("timeline-status").textContent = selectedMonth === "all" ? "All time" : `${timelineCumulative ? "Through " : ""}${formatMonth(selectedMonth)}`;
+  el("timeline-status").textContent = selectedMonth === "all" ? "All periods" : `${timelineCumulative ? "Through " : ""}${formatMonth(selectedMonth)}`;
 }
 
 function setRegionViewMode(mode) {
@@ -565,7 +570,7 @@ function populateFilters(packages) {
   });
 }
 
-function stopTimeline(buttonLabel = "Play timeline") {
+function stopTimeline(buttonLabel = "Animate by month") {
   if (timelineTimer) window.clearInterval(timelineTimer);
   timelineTimer = null;
   el("play-timeline").textContent = buttonLabel;
@@ -580,7 +585,7 @@ function showTimelineMonth(index) {
 
 function advanceTimeline() {
   if (timelineIndex >= timelineMonths.length - 1) {
-    stopTimeline("Replay timeline");
+    stopTimeline("Replay by month");
     return;
   }
   showTimelineMonth(timelineIndex + 1);
@@ -588,14 +593,14 @@ function advanceTimeline() {
 
 function toggleTimeline() {
   if (timelineTimer) {
-    stopTimeline("Resume timeline");
+    stopTimeline("Resume animation");
     return;
   }
   if (!timelineMonths.length) return;
   timelineCumulative = true;
   const selectedIndex = timelineMonths.indexOf(el("filter-month").value);
   showTimelineMonth(selectedIndex >= 0 && selectedIndex < timelineMonths.length - 1 ? selectedIndex : 0);
-  el("play-timeline").textContent = "Pause timeline";
+  el("play-timeline").textContent = "Pause animation";
   el("play-timeline").setAttribute("aria-pressed", "true");
   const interval = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 1300 : 850;
   timelineTimer = window.setInterval(advanceTimeline, interval);
@@ -658,5 +663,5 @@ fetch("data/shipments.json", { cache: "no-store" })
   .catch(error => {
     console.error(error);
     el("empty-state").hidden = false;
-    el("empty-state").textContent = "The journey data could not be loaded.";
+    el("empty-state").textContent = "Shipment data could not be loaded. Refresh the page to try again.";
   });

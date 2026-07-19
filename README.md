@@ -1,13 +1,13 @@
-# Where My Ebay Packages Have Travelled
+# North Shore Nostalgia Sales Atlas
 
-An interactive map built from real sales data from North Shore Nostalgia, my eBay business. I have been selling games for a few years, and this project turns that history into a public portfolio story: where packages went, how far the games travelled from Salem, Massachusetts, and how a small used-game shop reaches across the map.
+An interactive spatial analysis of real sales from North Shore Nostalgia, my eBay business. The project maps several years of generalized shipment destinations from Salem, Massachusetts, and combines the resulting geography with operational, console, and aggregate sales indicators.
 
-![Where My Ebay Packages Have Travelled portfolio preview](public/social-preview.png)
+![North Shore Nostalgia Sales Atlas preview](public/social-preview.png)
 
 ## What makes this portfolio-ready
 
-- A designed, responsive MapLibre 3D globe rather than a default pin map
-- Package and game counts, combined distance, regional reach, search, and time/place filters
+- A responsive MapLibre 3D globe developed with my custom **Globe Maps** skill
+- Order volume, route distance, geographic reach, platform filters, console rankings, search, and temporal playback
 - Real generalized sales data from North Shore Nostalgia
 - One package per eBay order, with multi-item orders grouped correctly
 - City-centroid geocoding and approximate great-circle distance calculations
@@ -82,6 +82,6 @@ pytest -q
 
 The tests cover package grouping, approximate distance, safe-history merging, the checked-in output schema, and representative PII exclusion.
 
-## Projection and distance note
+## Globe implementation, projection, and distance
 
-Coordinates are stored in WGS 84 (EPSG:4326) and displayed with MapLibre's globe projection, which smoothly transitions toward Web Mercator as the user zooms in. Routes are densified great-circle arcs so they follow the sphere. Distances use the same great-circle model and remain approximate city-to-city measurements, not road mileage or carrier routes.
+The globe presentation follows **Globe Maps**, a custom mapping skill I authored for MapLibre GL JS route projects. It informed the projection setup, atmosphere, `style.load` initialization, data-driven layers, selection behavior, and headless testing strategy. Coordinates are stored in WGS 84 (EPSG:4326) and displayed with MapLibre's globe projection, which transitions toward Web Mercator as the user zooms in. Routes are densified great-circle arcs and split at the antimeridian so they remain visually attached to the sphere. Distances use the same great-circle model and are approximate city-to-city measurements rather than road mileage or carrier routes.
