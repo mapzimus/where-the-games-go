@@ -40,10 +40,14 @@ h1 em { color: var(--lime); font-style: normal; }
 .filters { display: flex; gap: .75rem; align-items: end; flex-wrap: wrap; justify-content: flex-end; }
 .map-toolbar > *, .filters { min-width: 0; }
 .filters label { color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; }
-.timeline-control > span, .region-view-control > span, .region-summary-control > span, .international-control > span { display: block; color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; }
+.timeline-control > span, .routes-control > span, .region-view-control > span, .region-summary-control > span, .international-control > span { display: block; color: var(--muted); font-size: .68rem; text-transform: uppercase; letter-spacing: .1em; }
 .timeline-actions { display: flex; align-items: center; gap: .6rem; }
 .timeline-actions output { min-width: 92px; color: var(--ink); font-size: .76rem; white-space: nowrap; }
 .timeline-actions button[aria-pressed="true"] { color: var(--paper); background: var(--lime); border-color: var(--lime); }
+.routes-actions { display: flex; align-items: center; gap: .6rem; }
+.routes-actions button { min-width: 88px; }
+.routes-actions input[type="range"] { width: 112px; height: 42px; margin-top: .4rem; padding: 0; border: 0; background: transparent; accent-color: var(--blue); cursor: ew-resize; }
+.routes-actions output { min-width: 34px; margin-top: .4rem; color: var(--ink); font: 700 .72rem/1 "Space Grotesk", sans-serif; text-align: right; }
 .region-actions { display: flex; }
 .region-actions button { min-width: 78px; margin-right: -1px; border-radius: 0; }
 .region-actions button:first-child { border-radius: 3px 0 0 3px; }
@@ -140,7 +144,8 @@ footer span { color: var(--lime); font-family: "Space Grotesk", sans-serif; font
   .globe-badge { top: 10px; left: 10px; }
   .map-reset { top: 50px; left: 10px; }
   .search-label, .search-label input { width: 100%; }
-  .timeline-control, .timeline-actions, .region-view-control, .region-summary-control, .international-control { width: 100%; }
+  .timeline-control, .timeline-actions, .routes-control, .routes-actions, .region-view-control, .region-summary-control, .international-control { width: 100%; }
+  .routes-actions input[type="range"] { flex: 1; width: auto; }
   .region-actions button { flex: 1; }
   .region-summary-control output, .international-status { width: 100%; }
   .records-grid { grid-template-columns: 1fr; }

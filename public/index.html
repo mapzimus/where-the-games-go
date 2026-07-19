@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="styles.css?v=globe-3" />
+    <link rel="stylesheet" href="styles.css?v=globe-4" />
   </head>
   <body>
     <main class="shell">
@@ -52,6 +52,9 @@
             <label>Where
               <select id="filter-region"><option value="all">Everywhere</option></select>
             </label>
+            <label>Console
+              <select id="filter-console"><option value="all">All consoles</option></select>
+            </label>
             <div class="region-view-control">
               <span>Region view</span>
               <div class="region-actions" role="group" aria-label="Region display mode">
@@ -71,6 +74,14 @@
               <div class="timeline-actions">
                 <button id="play-timeline" type="button" aria-pressed="false">Play timeline</button>
                 <output id="timeline-status" aria-live="polite">All time</output>
+              </div>
+            </div>
+            <div class="routes-control">
+              <span>Route lines</span>
+              <div class="routes-actions">
+                <button id="toggle-routes" type="button" aria-pressed="true">Hide lines</button>
+                <input id="route-opacity" type="range" min="10" max="100" value="42" aria-label="Route line opacity" />
+                <output id="route-opacity-value" for="route-opacity">42%</output>
               </div>
             </div>
             <div class="international-control">
@@ -186,6 +197,6 @@
     </main>
 
     <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
-    <script src="app.js?v=globe-5"></script>
+    <script src="app.js?v=globe-6"></script>
   </body>
 </html>

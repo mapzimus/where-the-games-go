@@ -19,6 +19,8 @@ let timelineMonths = [];
 let timelineIndex = -1;
 let timelineCumulative = false;
 let regionViewMode = "highlight";
+let routesVisible = true;
+let routeOpacity = 0.42;
 let visibleGroups = new Map();
 let visibleHubGroups = new Map();
 let visibleInternational = [];
@@ -26,6 +28,37 @@ let internationalFocusIndex = -1;
 let activePopup = null;
 const routeGeometryCache = new Map();
 const INTERNATIONAL_HUB_KEYS = new Set(["glendale heights|il|united states"]);
+const CONSOLES = [
+  { id: "switch", label: "Nintendo Switch", pattern: /\bnintendo\s+switch\b|\bswitch\b.*\bgame\b|\bgame\b.*\bswitch\b/i },
+  { id: "3ds", label: "Nintendo 3DS / 2DS", pattern: /\b(?:nintendo\s*)?[23]ds\b/i },
+  { id: "ds", label: "Nintendo DS", pattern: /\bnintendo\s+ds\b|\bnds\b/i },
+  { id: "gba", label: "Game Boy Advance", pattern: /\bgame\s*boy\s*advance\b|\bgba\b/i },
+  { id: "gbc", label: "Game Boy Color", pattern: /\bgame\s*boy\s*colou?r\b|\bgbc\b/i },
+  { id: "gameboy", label: "Game Boy", pattern: /\bgame\s*boy\b(?!\s*(?:advance|colou?r))|\bgameboy\b(?!\s*(?:advance|colou?r))/i },
+  { id: "wiiu", label: "Wii U", pattern: /\bwii\s*u\b/i },
+  { id: "wii", label: "Wii", pattern: /\bwii\b(?!\s*u\b)/i },
+  { id: "gamecube", label: "Nintendo GameCube", pattern: /\bgame\s*cube\b|\bgcn\b/i },
+  { id: "n64", label: "Nintendo 64", pattern: /\bnintendo\s*64\b|\bn64\b/i },
+  { id: "snes", label: "Super Nintendo", pattern: /\bsuper\s+nintendo\b|\bsnes\b/i },
+  { id: "nes", label: "Nintendo Entertainment System", pattern: /\bnintendo\s+entertainment\s+system\b|\bnes\b/i },
+  { id: "ps5", label: "PlayStation 5", pattern: /\bplaystation\s*5\b|\bps5\b/i },
+  { id: "ps4", label: "PlayStation 4", pattern: /\bplaystation\s*4\b|\bps4\b/i },
+  { id: "ps3", label: "PlayStation 3", pattern: /\bplaystation\s*3\b|\bps3\b/i },
+  { id: "ps2", label: "PlayStation 2", pattern: /\bplaystation\s*2\b|\bps2\b/i },
+  { id: "ps1", label: "PlayStation", pattern: /\bplaystation\b(?!\s*[2345])|\bps1\b|\bpsx\b/i },
+  { id: "psvita", label: "PlayStation Vita", pattern: /\bps\s*vita\b|\bplaystation\s+vita\b/i },
+  { id: "psp", label: "PSP", pattern: /\b(?:sony\s+)?psp\b/i },
+  { id: "xbox-series", label: "Xbox Series X / S", pattern: /\bxbox\s+series\s*[xs]\b/i },
+  { id: "xbox-one", label: "Xbox One", pattern: /\bxbox\s+one\b/i },
+  { id: "xbox-360", label: "Xbox 360", pattern: /\bxbox\s*360\b/i },
+  { id: "xbox", label: "Xbox", pattern: /\bxbox\b(?!\s*(?:360|one|series))/i },
+  { id: "dreamcast", label: "Sega Dreamcast", pattern: /\bdreamcast\b/i },
+  { id: "saturn", label: "Sega Saturn", pattern: /\bsega\s+saturn\b/i },
+  { id: "genesis", label: "Sega Genesis / Mega Drive", pattern: /\bsega\s+genesis\b|\bmega\s+drive\b/i },
+  { id: "game-gear", label: "Sega Game Gear", pattern: /\bgame\s+gear\b/i },
+  { id: "atari", label: "Atari", pattern: /\batari(?:\s*(?:2600|5200|7800))?\b/i }
+];
+const consoleCache = new WeakMap();
 
 const el = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
@@ -64,6 +97,14 @@ function cityKey(pkg) {
 
 function regionKey(pkg) {
   return `${pkg.country}|${pkg.region}`;
+}
+
+function packageConsoleIds(pkg) {
+  if (!consoleCache.has(pkg)) {
+    const titles = pkg.titles.join(" ");
+    consoleCache.set(pkg, new Set(CONSOLES.filter(console => console.pattern.test(titles)).map(console => console.id)));
+  }
+  return consoleCache.get(pkg);
 }
 
 function locationKey(location) {
@@ -208,6 +249,24 @@ function setMapData(sourceId, features) {
   map.getSource(sourceId).setData({ type: "FeatureCollection", features });
 }
 
+function updateRouteAppearance() {
+  const intensity = routesVisible ? routeOpacity : 0;
+  const layers = {
+    "route-casing": 0.9,
+    routes: 0.78,
+    "highlight-routes": 1,
+    "onward-route-casing": 0.95,
+    "onward-routes": 0.96,
+    "highlight-onward-routes": 1
+  };
+  Object.entries(layers).forEach(([layerId, baseOpacity]) => {
+    if (map.getLayer(layerId)) map.setPaintProperty(layerId, "line-opacity", baseOpacity * intensity);
+  });
+  el("toggle-routes").textContent = routesVisible ? "Hide lines" : "Show lines";
+  el("toggle-routes").setAttribute("aria-pressed", String(routesVisible));
+  el("route-opacity-value").textContent = `${Math.round(routeOpacity * 100)}%`;
+}
+
 function appendGeometry(target, geometry) {
   if (geometry.type === "LineString") target.push(geometry.coordinates);
   else target.push(...geometry.coordinates);
@@ -325,42 +384,42 @@ function setupMapLayers() {
     type: "line",
     source: "routes",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#02070d", "line-width": 4, "line-opacity": 0.9 }
+    paint: { "line-color": "#02070d", "line-width": 2.75, "line-opacity": 0.9 }
   });
   map.addLayer({
     id: "routes",
     type: "line",
     source: "routes",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#7db7ff", "line-width": 1.75, "line-opacity": 0.78 }
+    paint: { "line-color": "#7db7ff", "line-width": 1.1, "line-opacity": 0.78 }
   });
   map.addLayer({
     id: "highlight-routes",
     type: "line",
     source: "highlight-routes",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#d6ff54", "line-width": 3.2, "line-opacity": 1 }
+    paint: { "line-color": "#d6ff54", "line-width": 2.4, "line-opacity": 1 }
   });
   map.addLayer({
     id: "onward-route-casing",
     type: "line",
     source: "onward-routes",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#02070d", "line-width": 5, "line-opacity": 0.95 }
+    paint: { "line-color": "#02070d", "line-width": 3.5, "line-opacity": 0.95 }
   });
   map.addLayer({
     id: "onward-routes",
     type: "line",
     source: "onward-routes",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#ffd166", "line-width": 2.5, "line-opacity": 0.96, "line-dasharray": [2, 1.35] }
+    paint: { "line-color": "#ffd166", "line-width": 1.7, "line-opacity": 0.96, "line-dasharray": [2, 1.35] }
   });
   map.addLayer({
     id: "highlight-onward-routes",
     type: "line",
     source: "highlight-onward-routes",
     layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#d6ff54", "line-width": 3.2, "line-opacity": 1, "line-dasharray": [2, 1.35] }
+    paint: { "line-color": "#d6ff54", "line-width": 2.4, "line-opacity": 1, "line-dasharray": [2, 1.35] }
   });
   map.addLayer({
     id: "destinations",
@@ -392,6 +451,7 @@ function setupMapLayers() {
     source: "origin",
     paint: { "circle-radius": 9, "circle-color": "#d6ff54", "circle-stroke-color": "#d6ff54", "circle-stroke-width": 2, "circle-blur": 0.08 }
   });
+  updateRouteAppearance();
 
   map.on("click", "destinations", event => {
     event.preventDefault();
@@ -450,9 +510,11 @@ const styleReady = new Promise(resolve => {
 function applyFilters() {
   const month = el("filter-month").value;
   const region = el("filter-region").value;
+  const consoleId = el("filter-console").value;
   const query = el("filter-title").value.trim().toLowerCase();
   const basePackages = dataset.packages.filter(pkg =>
     (month === "all" || (timelineCumulative ? pkg.month <= month : pkg.month === month)) &&
+    (consoleId === "all" || packageConsoleIds(pkg).has(consoleId)) &&
     (!query || pkg.titles.some(title => title.toLowerCase().includes(query)))
   );
   const regionPackages = region === "all" ? basePackages : basePackages.filter(pkg => regionKey(pkg) === region);
@@ -478,6 +540,17 @@ function setRegionViewMode(mode) {
   applyFilters();
 }
 
+function toggleRoutes() {
+  routesVisible = !routesVisible;
+  updateRouteAppearance();
+}
+
+function setRouteOpacity(event) {
+  routeOpacity = Number(event.target.value) / 100;
+  routesVisible = true;
+  updateRouteAppearance();
+}
+
 function populateFilters(packages) {
   timelineMonths = [...new Set(packages.map(pkg => pkg.month))].sort();
   [...timelineMonths].reverse().forEach(month => el("filter-month").add(new Option(month, month)));
@@ -486,6 +559,10 @@ function populateFilters(packages) {
     pkg.region === pkg.country ? pkg.country : `${pkg.region}, ${pkg.country}`
   ])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
   regions.forEach(([value, label]) => el("filter-region").add(new Option(label, value)));
+  CONSOLES.forEach(console => {
+    const count = packages.filter(pkg => packageConsoleIds(pkg).has(console.id)).length;
+    if (count) el("filter-console").add(new Option(`${console.label} · ${fmt.format(count)}`, console.id));
+  });
 }
 
 function stopTimeline(buttonLabel = "Play timeline") {
@@ -556,10 +633,13 @@ fetch("data/shipments.json", { cache: "no-store" })
     if (data.generatedAt) el("updated-at").textContent = `Updated ${new Date(data.generatedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}`;
     el("filter-month").addEventListener("change", () => { stopTimeline(); timelineCumulative = false; applyFilters(); });
     el("filter-region").addEventListener("change", applyFilters);
+    el("filter-console").addEventListener("change", applyFilters);
     el("region-highlight").addEventListener("click", () => setRegionViewMode("highlight"));
     el("region-isolate").addEventListener("click", () => setRegionViewMode("isolate"));
     el("filter-title").addEventListener("input", applyFilters);
     el("play-timeline").addEventListener("click", toggleTimeline);
+    el("toggle-routes").addEventListener("click", toggleRoutes);
+    el("route-opacity").addEventListener("input", setRouteOpacity);
     el("reset-globe").addEventListener("click", resetGlobe);
     el("international-status").addEventListener("click", focusInternational);
     el("reset-filters").addEventListener("click", () => {
@@ -567,6 +647,7 @@ fetch("data/shipments.json", { cache: "no-store" })
       timelineCumulative = false;
       el("filter-month").value = "all";
       el("filter-region").value = "all";
+      el("filter-console").value = "all";
       el("filter-title").value = "";
       regionViewMode = "highlight";
       el("region-highlight").setAttribute("aria-pressed", "true");
