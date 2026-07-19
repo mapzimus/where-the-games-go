@@ -18,6 +18,7 @@ let timelineTimer = null;
 let timelineMonths = [];
 let timelineIndex = -1;
 let timelineCumulative = false;
+let regionViewMode = "highlight";
 let visibleGroups = new Map();
 let visibleHubGroups = new Map();
 let visibleInternational = [];
@@ -59,6 +60,10 @@ function titleCase(value) {
 
 function cityKey(pkg) {
   return locationKey(pkg);
+}
+
+function regionKey(pkg) {
+  return `${pkg.country}|${pkg.region}`;
 }
 
 function locationKey(location) {
@@ -203,7 +208,12 @@ function setMapData(sourceId, features) {
   map.getSource(sourceId).setData({ type: "FeatureCollection", features });
 }
 
-function render(packages) {
+function appendGeometry(target, geometry) {
+  if (geometry.type === "LineString") target.push(geometry.coordinates);
+  else target.push(...geometry.coordinates);
+}
+
+function render(packages, highlightedRegion = null) {
   const grouped = new Map();
   const hubGroups = new Map();
   packages.forEach(pkg => {
@@ -225,37 +235,41 @@ function render(packages) {
   const origin = [dataset.origin.lng, dataset.origin.lat];
   const routeLines = [];
   const onwardRouteLines = [];
+  const highlightedRouteLines = [];
+  const highlightedOnwardRouteLines = [];
   const destinationFeatures = [];
   const hubFeatures = [];
   grouped.forEach((items, key) => {
     const first = items[0];
+    const selected = Boolean(highlightedRegion && regionKey(first) === highlightedRegion);
     const routeEnd = first.via ? [first.via.lng, first.via.lat] : [first.lng, first.lat];
     const routeKey = `origin|${routeEnd.join("|")}`;
     if (!routeGeometryCache.has(routeKey)) routeGeometryCache.set(routeKey, greatCircleGeometry(origin, routeEnd));
     const geometry = routeGeometryCache.get(routeKey);
-    if (geometry.type === "LineString") routeLines.push(geometry.coordinates);
-    else routeLines.push(...geometry.coordinates);
+    appendGeometry(routeLines, geometry);
+    if (selected) appendGeometry(highlightedRouteLines, geometry);
     if (first.via) {
       const onwardKey = `onward|${first.via.lng}|${first.via.lat}|${first.lng}|${first.lat}`;
       if (!routeGeometryCache.has(onwardKey)) routeGeometryCache.set(onwardKey, greatCircleGeometry([first.via.lng, first.via.lat], [first.lng, first.lat]));
       const onwardGeometry = routeGeometryCache.get(onwardKey);
-      if (onwardGeometry.type === "LineString") onwardRouteLines.push(onwardGeometry.coordinates);
-      else onwardRouteLines.push(...onwardGeometry.coordinates);
+      appendGeometry(onwardRouteLines, onwardGeometry);
+      if (selected) appendGeometry(highlightedOnwardRouteLines, onwardGeometry);
     }
-    destinationFeatures.push({ type: "Feature", properties: { key, count: items.length }, geometry: { type: "Point", coordinates: [first.lng, first.lat] } });
+    destinationFeatures.push({ type: "Feature", properties: { key, count: items.length, selected }, geometry: { type: "Point", coordinates: [first.lng, first.lat] } });
   });
   hubGroups.forEach((group, key) => {
     const hub = group.location;
+    const selected = Boolean(highlightedRegion && [...group.known, ...group.unknown].some(pkg => regionKey(pkg) === highlightedRegion));
     const routeKey = `origin|${hub.lng}|${hub.lat}`;
     if (!routeGeometryCache.has(routeKey)) routeGeometryCache.set(routeKey, greatCircleGeometry(origin, [hub.lng, hub.lat]));
+    const geometry = routeGeometryCache.get(routeKey);
     if (!grouped.size || !group.known.length) {
-      const geometry = routeGeometryCache.get(routeKey);
-      if (geometry.type === "LineString") routeLines.push(geometry.coordinates);
-      else routeLines.push(...geometry.coordinates);
+      appendGeometry(routeLines, geometry);
     }
+    if (selected) appendGeometry(highlightedRouteLines, geometry);
     hubFeatures.push({
       type: "Feature",
-      properties: { key, count: group.known.length + group.unknown.length },
+      properties: { key, count: group.known.length + group.unknown.length, selected },
       geometry: { type: "Point", coordinates: [hub.lng, hub.lat] }
     });
   });
@@ -265,6 +279,8 @@ function render(packages) {
   setMapData("origin", [{ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: origin } }]);
   setMapData("routes", routeLines.length ? [{ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: routeLines } }] : []);
   setMapData("onward-routes", onwardRouteLines.length ? [{ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: onwardRouteLines } }] : []);
+  setMapData("highlight-routes", highlightedRouteLines.length ? [{ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: highlightedRouteLines } }] : []);
+  setMapData("highlight-onward-routes", highlightedOnwardRouteLines.length ? [{ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: highlightedOnwardRouteLines } }] : []);
 
   if (activePopup) {
     activePopup.remove();
@@ -284,7 +300,10 @@ function render(packages) {
   const internationalStatus = el("international-status");
   internationalStatus.hidden = internationalKnown + internationalUnknown === 0;
   internationalStatus.disabled = internationalKnown === 0;
-  internationalStatus.textContent = `${packageLabel(internationalKnown)} mapped internationally · ${packageLabel(internationalUnknown)} hub-only${internationalKnown ? " · Tour international destinations" : ""}`;
+  internationalStatus.textContent = internationalKnown ? `Tour ${packageLabel(internationalKnown)}` : "No mapped destinations";
+  internationalStatus.title = internationalUnknown
+    ? `${packageLabel(internationalKnown)} mapped internationally; ${packageLabel(internationalUnknown)} hub-only`
+    : `Tour ${packageLabel(internationalKnown)} mapped internationally`;
   renderRecords(packages);
 
   const farthest = [...packages].sort((a, b) => b.distanceMiles - a.distanceMiles)[0];
@@ -296,6 +315,8 @@ function render(packages) {
 function setupMapLayers() {
   map.addSource("routes", { type: "geojson", data: emptyCollection() });
   map.addSource("onward-routes", { type: "geojson", data: emptyCollection() });
+  map.addSource("highlight-routes", { type: "geojson", data: emptyCollection() });
+  map.addSource("highlight-onward-routes", { type: "geojson", data: emptyCollection() });
   map.addSource("destinations", { type: "geojson", data: emptyCollection() });
   map.addSource("international-hubs", { type: "geojson", data: emptyCollection() });
   map.addSource("origin", { type: "geojson", data: emptyCollection() });
@@ -314,6 +335,13 @@ function setupMapLayers() {
     paint: { "line-color": "#7db7ff", "line-width": 1.75, "line-opacity": 0.78 }
   });
   map.addLayer({
+    id: "highlight-routes",
+    type: "line",
+    source: "highlight-routes",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: { "line-color": "#d6ff54", "line-width": 3.2, "line-opacity": 1 }
+  });
+  map.addLayer({
     id: "onward-route-casing",
     type: "line",
     source: "onward-routes",
@@ -328,15 +356,22 @@ function setupMapLayers() {
     paint: { "line-color": "#ffd166", "line-width": 2.5, "line-opacity": 0.96, "line-dasharray": [2, 1.35] }
   });
   map.addLayer({
+    id: "highlight-onward-routes",
+    type: "line",
+    source: "highlight-onward-routes",
+    layout: { "line-cap": "round", "line-join": "round" },
+    paint: { "line-color": "#d6ff54", "line-width": 3.2, "line-opacity": 1, "line-dasharray": [2, 1.35] }
+  });
+  map.addLayer({
     id: "destinations",
     type: "circle",
     source: "destinations",
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["get", "count"], 1, 4, 4, 7, 10, 11],
-      "circle-color": "#ff735c",
-      "circle-stroke-color": "#111315",
-      "circle-stroke-width": 1.5,
-      "circle-opacity": 0.9
+      "circle-color": ["case", ["boolean", ["get", "selected"], false], "#d6ff54", "#ff735c"],
+      "circle-stroke-color": ["case", ["boolean", ["get", "selected"], false], "#d6ff54", "#111315"],
+      "circle-stroke-width": ["case", ["boolean", ["get", "selected"], false], 2.5, 1.5],
+      "circle-opacity": ["case", ["boolean", ["get", "selected"], false], 1, 0.82]
     }
   });
   map.addLayer({
@@ -345,9 +380,9 @@ function setupMapLayers() {
     source: "international-hubs",
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["get", "count"], 1, 6, 10, 10],
-      "circle-color": "#ffd166",
-      "circle-stroke-color": "#111315",
-      "circle-stroke-width": 2,
+      "circle-color": ["case", ["boolean", ["get", "selected"], false], "#d6ff54", "#ffd166"],
+      "circle-stroke-color": ["case", ["boolean", ["get", "selected"], false], "#d6ff54", "#111315"],
+      "circle-stroke-width": ["case", ["boolean", ["get", "selected"], false], 2.5, 2],
       "circle-opacity": 0.96
     }
   });
@@ -416,13 +451,31 @@ function applyFilters() {
   const month = el("filter-month").value;
   const region = el("filter-region").value;
   const query = el("filter-title").value.trim().toLowerCase();
-  render(dataset.packages.filter(pkg =>
+  const basePackages = dataset.packages.filter(pkg =>
     (month === "all" || (timelineCumulative ? pkg.month <= month : pkg.month === month)) &&
-    (region === "all" || `${pkg.country}|${pkg.region}` === region) &&
     (!query || pkg.titles.some(title => title.toLowerCase().includes(query)))
-  ));
+  );
+  const regionPackages = region === "all" ? basePackages : basePackages.filter(pkg => regionKey(pkg) === region);
+  const visiblePackages = region !== "all" && regionViewMode === "isolate" ? regionPackages : basePackages;
+  render(visiblePackages, region === "all" ? null : region);
+
+  const selectedOption = el("filter-region").selectedOptions[0];
+  const regionLabel = selectedOption?.textContent || "Everywhere";
+  el("region-status").textContent = region === "all"
+    ? `Everywhere · ${packageLabel(basePackages.length)}`
+    : `${regionLabel} · ${packageLabel(regionPackages.length)}`;
+  const regionActive = region !== "all";
+  el("region-highlight").disabled = !regionActive;
+  el("region-isolate").disabled = !regionActive;
   const selectedMonth = el("filter-month").value;
   el("timeline-status").textContent = selectedMonth === "all" ? "All time" : `${timelineCumulative ? "Through " : ""}${formatMonth(selectedMonth)}`;
+}
+
+function setRegionViewMode(mode) {
+  regionViewMode = mode;
+  el("region-highlight").setAttribute("aria-pressed", String(mode === "highlight"));
+  el("region-isolate").setAttribute("aria-pressed", String(mode === "isolate"));
+  applyFilters();
 }
 
 function populateFilters(packages) {
@@ -499,10 +552,12 @@ fetch("data/shipments.json", { cache: "no-store" })
     dataset = data;
     populateFilters(data.packages);
     await styleReady;
-    render(data.packages);
+    applyFilters();
     if (data.generatedAt) el("updated-at").textContent = `Updated ${new Date(data.generatedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}`;
     el("filter-month").addEventListener("change", () => { stopTimeline(); timelineCumulative = false; applyFilters(); });
     el("filter-region").addEventListener("change", applyFilters);
+    el("region-highlight").addEventListener("click", () => setRegionViewMode("highlight"));
+    el("region-isolate").addEventListener("click", () => setRegionViewMode("isolate"));
     el("filter-title").addEventListener("input", applyFilters);
     el("play-timeline").addEventListener("click", toggleTimeline);
     el("reset-globe").addEventListener("click", resetGlobe);
@@ -513,6 +568,9 @@ fetch("data/shipments.json", { cache: "no-store" })
       el("filter-month").value = "all";
       el("filter-region").value = "all";
       el("filter-title").value = "";
+      regionViewMode = "highlight";
+      el("region-highlight").setAttribute("aria-pressed", "true");
+      el("region-isolate").setAttribute("aria-pressed", "false");
       applyFilters();
     });
   })

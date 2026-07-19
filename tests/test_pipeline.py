@@ -241,8 +241,21 @@ def test_dashboard_includes_filter_aware_sales_records():
     assert 'California' in javascript
     assert 'id="reset-globe"' in html
     assert 'has("preview")' in javascript
-    assert 'href="styles.css?v=globe-2"' in html
-    assert 'src="app.js?v=globe-4"' in html
+    assert 'href="styles.css?v=globe-3"' in html
+    assert 'src="app.js?v=globe-5"' in html
     assert 'id="international-status"' in html
     assert 'source: "onward-routes"' in javascript
+    assert 'source: "highlight-routes"' in javascript
+    assert 'source: "highlight-onward-routes"' in javascript
     assert 'fetch("data/shipments.json", { cache: "no-store" })' in javascript
+
+
+def test_region_filter_can_highlight_or_isolate_and_reports_package_count():
+    html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
+    javascript = (ROOT / "public" / "app.js").read_text(encoding="utf-8")
+    for control_id in ("region-highlight", "region-isolate", "region-status"):
+        assert f'id="{control_id}"' in html
+    assert html.index('id="international-status"') < html.index('class="map-wrap"')
+    assert 'regionViewMode === "isolate"' in javascript
+    assert 'render(visiblePackages, region === "all" ? null : region);' in javascript
+    assert '${regionLabel} · ${packageLabel(regionPackages.length)}' in javascript

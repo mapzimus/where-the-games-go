@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="styles.css?v=globe-2" />
+    <link rel="stylesheet" href="styles.css?v=globe-3" />
   </head>
   <body>
     <main class="shell">
@@ -52,6 +52,17 @@
             <label>Where
               <select id="filter-region"><option value="all">Everywhere</option></select>
             </label>
+            <div class="region-view-control">
+              <span>Region view</span>
+              <div class="region-actions" role="group" aria-label="Region display mode">
+                <button id="region-highlight" type="button" aria-pressed="true">Highlight</button>
+                <button id="region-isolate" type="button" aria-pressed="false">Only show</button>
+              </div>
+            </div>
+            <div class="region-summary-control">
+              <span>Selected region</span>
+              <output id="region-status" aria-live="polite">Everywhere</output>
+            </div>
             <label class="search-label">Find a game
               <input id="filter-title" type="search" placeholder="Try Mario, Zelda…" />
             </label>
@@ -62,6 +73,10 @@
                 <output id="timeline-status" aria-live="polite">All time</output>
               </div>
             </div>
+            <div class="international-control">
+              <span>International</span>
+              <button class="international-status" id="international-status" type="button" title="Tour mapped international destinations" hidden></button>
+            </div>
             <button id="reset-filters" type="button">Reset</button>
           </div>
         </div>
@@ -69,11 +84,11 @@
           <div id="map" aria-label="Interactive 3D globe of generalized package destinations"></div>
           <div class="globe-badge" aria-hidden="true">3D GLOBE · DRAG TO ROTATE</div>
           <button class="map-reset" id="reset-globe" type="button">Reset globe</button>
-          <button class="international-status" id="international-status" type="button" title="Tour mapped international destinations" hidden></button>
           <div class="map-key">
             <span><i class="key-origin"></i> Salem origin</span>
             <span><i class="key-destination"></i> Destination city</span>
             <span><i class="key-route"></i> Approximate journey</span>
+            <span><i class="key-selected"></i> Selected region</span>
             <span><i class="key-hub"></i> eBay international hub</span>
             <span><i class="key-onward"></i> Onward international leg</span>
           </div>
@@ -171,6 +186,6 @@
     </main>
 
     <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
-    <script src="app.js?v=globe-4"></script>
+    <script src="app.js?v=globe-5"></script>
   </body>
 </html>
