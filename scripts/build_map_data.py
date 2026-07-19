@@ -41,6 +41,7 @@ COUNTRY_CODES = {
     "ca": ("CA", "Canada"), "canada": ("CA", "Canada"),
     "au": ("AU", "Australia"), "australia": ("AU", "Australia"),
     "cl": ("CL", "Chile"), "chile": ("CL", "Chile"),
+    "ch": ("CH", "Switzerland"), "switzerland": ("CH", "Switzerland"),
     "gb": ("GB", "United Kingdom"), "uk": ("GB", "United Kingdom"),
     "united kingdom": ("GB", "United Kingdom"),
     "jp": ("JP", "Japan"), "japan": ("JP", "Japan"),

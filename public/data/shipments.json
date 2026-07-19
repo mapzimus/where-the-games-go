@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-18T17:36:45.438271Z",
+  "generatedAt": "2026-07-19T00:03:48.025696Z",
   "origin": {
     "name": "Salem, Massachusetts",
     "lat": 42.51953,
@@ -9,8 +9,8 @@
   "summary": {
     "packages": 1009,
     "games": 1009,
-    "miles": 1214621,
-    "regions": 55
+    "miles": 1221040,
+    "regions": 59
   },
   "packages": [
     {
@@ -2478,48 +2478,6 @@
       "id": "journey-302dc652ae30-1"
     },
     {
-      "city": "Glendale Heights",
-      "region": "IL",
-      "country": "United States",
-      "lat": 41.91895,
-      "lng": -88.07657,
-      "month": "2025-06",
-      "distanceMiles": 879,
-      "gameCount": 1,
-      "titles": [
-        "Nintendo 64 N64 Ultimate Bundle- Jungle Green Console, 21 Games, 4 Controllers"
-      ],
-      "id": "journey-b4019219030b-1"
-    },
-    {
-      "city": "Glendale Heights",
-      "region": "IL",
-      "country": "United States",
-      "lat": 41.91895,
-      "lng": -88.07657,
-      "month": "2025-06",
-      "distanceMiles": 879,
-      "gameCount": 1,
-      "titles": [
-        "Ar Tonelico Qoga: Knell of Ar Ciel (Premium Pack) - Sony PlayStation 3"
-      ],
-      "id": "journey-c4a5f343fe5c-1"
-    },
-    {
-      "city": "Glendale Heights",
-      "region": "IL",
-      "country": "United States",
-      "lat": 41.91895,
-      "lng": -88.07657,
-      "month": "2025-06",
-      "distanceMiles": 879,
-      "gameCount": 1,
-      "titles": [
-        "N64 Insane Bundle- Jungle Green Console, 21 Games, 5 Controllers, GameShark"
-      ],
-      "id": "journey-d43b719f30b3-1"
-    },
-    {
       "city": "Grand Prairie",
       "region": "TX",
       "country": "United States",
@@ -2770,6 +2728,27 @@
         "Peter Jackson's King Kong: The Official Game (Sony PlayStation 2) CIB W/ Manual"
       ],
       "id": "journey-a62c508a6c61-1"
+    },
+    {
+      "city": "Lausanne",
+      "region": "Switzerland",
+      "country": "Switzerland",
+      "lat": 46.52183,
+      "lng": 6.6327,
+      "month": "2025-06",
+      "distanceMiles": 3671,
+      "gameCount": 1,
+      "titles": [
+        "Ar Tonelico Qoga: Knell of Ar Ciel (Premium Pack) - Sony PlayStation 3"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-b5889108d9f9-1"
     },
     {
       "city": "Lexington",
@@ -3316,6 +3295,48 @@
         "Teenage Mutant Ninja Turtles 2: BattleNexus (Sony PlayStation 2, 2004) CIB"
       ],
       "id": "journey-11ae826171d2-1"
+    },
+    {
+      "city": "Saskatoon",
+      "region": "SK",
+      "country": "Canada",
+      "lat": 52.1318,
+      "lng": -106.66077,
+      "month": "2025-06",
+      "distanceMiles": 1780,
+      "gameCount": 1,
+      "titles": [
+        "N64 Insane Bundle- Jungle Green Console, 21 Games, 5 Controllers, GameShark"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-2cfe3f28a91d-1"
+    },
+    {
+      "city": "Saskatoon",
+      "region": "SK",
+      "country": "Canada",
+      "lat": 52.1318,
+      "lng": -106.66077,
+      "month": "2025-06",
+      "distanceMiles": 1780,
+      "gameCount": 1,
+      "titles": [
+        "Nintendo 64 N64 Ultimate Bundle- Jungle Green Console, 21 Games, 4 Controllers"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-838a84bbcb21-1"
     },
     {
       "city": "Saucier",
@@ -6426,20 +6447,6 @@
       "id": "journey-f4623d52cfde-1"
     },
     {
-      "city": "Glendale Heights",
-      "region": "IL",
-      "country": "United States",
-      "lat": 41.91895,
-      "lng": -88.07657,
-      "month": "2025-09",
-      "distanceMiles": 879,
-      "gameCount": 1,
-      "titles": [
-        "Sonic Unleashed (Nintendo Wii, 2008) Brand New Factory Sealed"
-      ],
-      "id": "journey-9de1eb0eb2fd-1"
-    },
-    {
       "city": "Henderson",
       "region": "NV",
       "country": "United States",
@@ -6494,6 +6501,27 @@
         "Allied General (Sony PlayStation 1, 1996) CIB Complete With Manual Tested PS1"
       ],
       "id": "journey-bf2e78b2640c-1"
+    },
+    {
+      "city": "Kelowna",
+      "region": "BC",
+      "country": "Canada",
+      "lat": 49.88792,
+      "lng": -119.4959,
+      "month": "2025-09",
+      "distanceMiles": 2336,
+      "gameCount": 1,
+      "titles": [
+        "Sonic Unleashed (Nintendo Wii, 2008) Brand New Factory Sealed"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-9f7e7492ce10-1"
     },
     {
       "city": "King George",
@@ -8946,20 +8974,6 @@
       "id": "journey-39f2012eef0f-1"
     },
     {
-      "city": "Glendale Heights",
-      "region": "IL",
-      "country": "United States",
-      "lat": 41.91895,
-      "lng": -88.07657,
-      "month": "2025-11",
-      "distanceMiles": 879,
-      "gameCount": 1,
-      "titles": [
-        "Ben 10: Omniverse 2 (Sony PlayStation 3, 2013) Tested & Working"
-      ],
-      "id": "journey-1d4b48129ae6-1"
-    },
-    {
       "city": "Hopewell",
       "region": "NJ",
       "country": "United States",
@@ -9140,6 +9154,27 @@
         "Mario & Luigi: Bowser's Inside Story (Nintendo DS, 2009) CIB W/ Manual & Inserts"
       ],
       "id": "journey-dcb86f087906-1"
+    },
+    {
+      "city": "Oakville",
+      "region": "ON",
+      "country": "Canada",
+      "lat": 43.44744,
+      "lng": -79.66667,
+      "month": "2025-11",
+      "distanceMiles": 448,
+      "gameCount": 1,
+      "titles": [
+        "Ben 10: Omniverse 2 (Sony PlayStation 3, 2013) Tested & Working"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-8326c9ef4556-1"
     },
     {
       "city": "Ocala",
@@ -9492,20 +9527,6 @@
       "id": "journey-2121a4b09035-1"
     },
     {
-      "city": "Glendale Heights",
-      "region": "IL",
-      "country": "United States",
-      "lat": 41.91895,
-      "lng": -88.07657,
-      "month": "2025-12",
-      "distanceMiles": 879,
-      "gameCount": 1,
-      "titles": [
-        "Animal Crossing (Nintendo GameCube, 2002) Complete W/ Manual & Inserts"
-      ],
-      "id": "journey-539522a8f4cb-1"
-    },
-    {
       "city": "Mexico",
       "region": "MO",
       "country": "United States",
@@ -9602,6 +9623,27 @@
         "Pokemon XD: Gale of Darkness (Nintendo GameCube, 2005) CIB Complete W/ Poster"
       ],
       "id": "journey-fe8ed089adcd-1"
+    },
+    {
+      "city": "Regina",
+      "region": "SK",
+      "country": "Canada",
+      "lat": 50.44797,
+      "lng": -104.61588,
+      "month": "2025-12",
+      "distanceMiles": 1678,
+      "gameCount": 1,
+      "titles": [
+        "Animal Crossing (Nintendo GameCube, 2002) Complete W/ Manual & Inserts"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-d79160c473f7-1"
     },
     {
       "city": "Richey",
