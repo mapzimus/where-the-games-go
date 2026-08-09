@@ -1137,6 +1137,10 @@
     "lat": 29.65197,
     "lng": -82.32498
   },
+  "gainesville|ga|US": {
+    "lat": 34.29788,
+    "lng": -83.82407
+  },
   "gales ferry|ct|US": {
     "lat": 41.42127,
     "lng": -72.08648
@@ -1604,6 +1608,10 @@
   "leland|nc|US": {
     "lat": 34.23643,
     "lng": -78.004
+  },
+  "lenox|mi|US": {
+    "lat": 42.76436,
+    "lng": -82.79667
   },
   "lewiston|id|US": {
     "lat": 46.41959,
@@ -2761,6 +2769,10 @@
     "lat": 38.18809,
     "lng": -77.67418
   },
+  "spring hill|tn|US": {
+    "lat": 35.75118,
+    "lng": -86.93
+  },
   "spring valley|il|US": {
     "lat": 41.32754,
     "lng": -89.19981
@@ -3260,6 +3272,10 @@
   "yuba city|ca|US": {
     "lat": 39.14045,
     "lng": -121.61691
+  },
+  "zeeland|mi|US": {
+    "lat": 42.81234,
+    "lng": -86.01653
   },
   "zimmerman|mn|US": {
     "lat": 45.44328,

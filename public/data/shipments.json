@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-07-19T00:36:26.644444Z",
+  "generatedAt": "2026-08-09T01:48:26.554381Z",
   "origin": {
     "name": "Salem, Massachusetts",
     "lat": 42.51953,
     "lng": -70.89672
   },
   "summary": {
-    "packages": 1035,
-    "games": 1035,
-    "miles": 1270038,
+    "packages": 1040,
+    "games": 1040,
+    "miles": 1273937,
     "regions": 63
   },
   "packages": [
@@ -14572,6 +14572,76 @@
         "Nintendo DS Zoo Tycoon DS 2005 Game (Cartridge Only) Tested & Works"
       ],
       "id": "journey-9488999dd20a-1"
+    },
+    {
+      "city": "Gainesville",
+      "region": "GA",
+      "country": "United States",
+      "lat": 34.29788,
+      "lng": -83.82407,
+      "month": "2026-08",
+      "distanceMiles": 900,
+      "gameCount": 1,
+      "titles": [
+        "The Walking Dead: Survival Instinct (Sony PlayStation 3, 2013) Complete Tested"
+      ],
+      "id": "journey-ee896040dd3b-1"
+    },
+    {
+      "city": "Lenox",
+      "region": "MI",
+      "country": "United States",
+      "lat": 42.76436,
+      "lng": -82.79667,
+      "month": "2026-08",
+      "distanceMiles": 605,
+      "gameCount": 1,
+      "titles": [
+        "Toxic Grind (Microsoft Xbox, 2002) Complete CIB With Manual"
+      ],
+      "id": "journey-058628c968b6-1"
+    },
+    {
+      "city": "Spring Hill",
+      "region": "TN",
+      "country": "United States",
+      "lat": 35.75118,
+      "lng": -86.93,
+      "month": "2026-08",
+      "distanceMiles": 976,
+      "gameCount": 1,
+      "titles": [
+        "Hot Shots Golf 3 (PlayStation 2 PS2) Greatest Hits CIB COMPLETE Tested"
+      ],
+      "id": "journey-a43b25b41d4c-1"
+    },
+    {
+      "city": "Temperance",
+      "region": "MI",
+      "country": "United States",
+      "lat": 41.76476,
+      "lng": -83.57223,
+      "month": "2026-08",
+      "distanceMiles": 651,
+      "gameCount": 1,
+      "titles": [
+        "Dark Void (Microsoft Xbox 360) - CIB Complete w/Manual Tested Works"
+      ],
+      "id": "journey-668dccf3a19a-1"
+    },
+    {
+      "city": "Zeeland",
+      "region": "MI",
+      "country": "United States",
+      "lat": 42.81234,
+      "lng": -86.01653,
+      "month": "2026-08",
+      "distanceMiles": 767,
+      "gameCount": 1,
+      "titles": [
+        "The Sims Bustin' Out (Original Xbox) CIB COMPLETE & TESTED Excellent Condition"
+      ],
+      "id": "journey-c076d87abd17-1"
     }
   ],
   "financialHighlights": {
