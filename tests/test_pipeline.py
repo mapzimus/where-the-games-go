@@ -191,6 +191,9 @@ def test_checked_in_dataset_respects_public_schema():
     assert payload["financialHighlights"]["topGrossingConsole"]["label"] == "Nintendo GameCube"
     assert payload["financialHighlights"]["topConsoleByUnits"] == {"label": "PlayStation 2", "gameCount": 370}
     assert "$" not in json.dumps(payload["financialHighlights"])
+    assert payload["dataCoverage"] == json.loads((ROOT / "data" / "public-coverage.json").read_text(encoding="utf-8"))
+    assert payload["dataCoverage"]["status"] == "incomplete"
+    assert payload["dataCoverage"]["knownGaps"] == [{"start": "2026-07-19", "end": "2026-08-02"}]
 
 
 def test_pages_workflows_deploy_both_pushes_and_scheduled_refreshes():
@@ -205,6 +208,8 @@ def test_pages_workflows_deploy_both_pushes_and_scheduled_refreshes():
     assert "EBAY_REFRESH_TOKEN" in refresh
     assert "configured: ${{ steps.secrets.outputs.configured }}" in refresh
     assert "if: needs.refresh.outputs.configured == 'true'" in refresh
+    assert "::error title=eBay refresh is not configured" in refresh
+    assert "exit 1" in refresh
 
 
 def test_maplibre_globe_assets_and_projection_are_pinned():
@@ -245,8 +250,12 @@ def test_dashboard_includes_filter_aware_sales_records():
     assert 'California' in javascript
     assert 'id="reset-globe"' in html
     assert 'has("preview")' in javascript
-    assert 'href="styles.css?v=atlas-1"' in html
-    assert 'src="app.js?v=atlas-1"' in html
+    assert 'href="styles.css?v=atlas-2"' in html
+    assert 'src="app.js?v=atlas-2"' in html
+    assert 'id="data-coverage"' in html
+    assert 'id="coverage-detail"' in html
+    assert "function renderCoverage(coverage)" in javascript
+    assert "Coverage incomplete" in javascript
     assert 'id="international-status"' in html
     assert 'source: "onward-routes"' in javascript
     assert 'source: "highlight-routes"' in javascript

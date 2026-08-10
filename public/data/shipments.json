@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-09T01:48:26.554381Z",
+  "generatedAt": "2026-08-10T03:49:30.887830Z",
   "origin": {
     "name": "Salem, Massachusetts",
     "lat": 42.51953,
@@ -14658,5 +14658,16 @@
       "label": "PlayStation 2",
       "gameCount": 370
     }
+  },
+  "dataCoverage": {
+    "status": "incomplete",
+    "asOf": "2026-08-08",
+    "knownGaps": [
+      {
+        "start": "2026-07-19",
+        "end": "2026-08-02"
+      }
+    ],
+    "note": "The available eBay exports do not include orders sold from July 19 through August 2, 2026. Headline totals reflect known records only."
   }
 }

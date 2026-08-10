@@ -34,6 +34,13 @@ h1 em { display: block; color: var(--lime); font-style: normal; font-weight: 500
 .stats strong { display: block; font: 600 clamp(2rem, 4vw, 4.5rem)/1 "Manrope", sans-serif; letter-spacing: -.055em; white-space: nowrap; }
 .stats span { color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font: 500 .66rem/1.4 "IBM Plex Mono", monospace; }
 
+.coverage-notice { display: grid; grid-template-columns: minmax(220px, .7fr) minmax(0, 1.3fr); gap: clamp(1.5rem, 4vw, 5rem); align-items: center; margin-top: 2rem; padding: 1.4rem clamp(1rem, 2.5vw, 2rem); border: 1px solid #70594e; background: linear-gradient(90deg, rgba(239,140,118,.12), rgba(239,140,118,.04)); }
+.coverage-notice[hidden] { display: none; }
+.coverage-notice .section-kicker { margin-bottom: .45rem; color: var(--coral); }
+.coverage-notice h2 { margin: 0; font-size: clamp(1.35rem, 2.2vw, 2rem); letter-spacing: -.035em; }
+.coverage-notice p { margin: 0; color: #d7c9c4; line-height: 1.6; }
+.coverage-notice .coverage-meta { margin-top: .4rem; color: var(--muted); font: 500 .68rem/1.5 "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .06em; }
+
 .map-panel { padding: 5rem 0; }
 .map-toolbar { display: flex; justify-content: space-between; gap: 2rem; align-items: end; margin-bottom: 1.4rem; }
 .map-toolbar h2, .story-grid h2 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.8rem); letter-spacing: -.04em; }
@@ -130,6 +137,7 @@ footer span { color: var(--lime); font-weight: 600; }
   .story-grid article:first-child { border-right: 0; border-bottom: 1px solid var(--line); }
   .records-heading { align-items: start; flex-direction: column; gap: .75rem; }
   .records-heading > p { text-align: left; }
+  .coverage-notice { grid-template-columns: 1fr; gap: .75rem; }
   footer { flex-direction: column; gap: .4rem; }
 }
 @media (max-width: 560px) {
@@ -153,7 +161,7 @@ footer span { color: var(--lime); font-weight: 600; }
 
 .preview-mode body { background: #07090c; }
 .preview-mode .shell { width: 100%; padding: 0; }
-.preview-mode .hero, .preview-mode .stats, .preview-mode .map-toolbar, .preview-mode .records, .preview-mode .story-grid, .preview-mode footer { display: none; }
+.preview-mode .hero, .preview-mode .stats, .preview-mode .coverage-notice, .preview-mode .map-toolbar, .preview-mode .records, .preview-mode .story-grid, .preview-mode footer { display: none; }
 .preview-mode .map-panel { padding: 0; }
 .preview-mode .map-wrap { height: 100vh; border: 0; }
 .preview-mode #map { height: 100vh; min-height: 0; }

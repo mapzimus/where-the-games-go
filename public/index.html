@@ -15,7 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="styles.css?v=atlas-1" />
+    <link rel="stylesheet" href="styles.css?v=atlas-2" />
   </head>
   <body>
     <main class="shell">
@@ -33,10 +33,21 @@
       </header>
 
       <section class="stats" aria-label="Shipment summary">
-        <article><strong id="stat-packages">—</strong><span>orders mapped</span></article>
+        <article><strong id="stat-packages">—</strong><span>known orders mapped</span></article>
         <article><strong id="stat-cities">—</strong><span>destination communities</span></article>
         <article><strong id="stat-miles">—</strong><span>estimated route miles</span></article>
         <article><strong id="stat-regions">—</strong><span>geographic regions reached</span></article>
+      </section>
+
+      <section class="coverage-notice" id="data-coverage" aria-labelledby="coverage-title" hidden>
+        <div>
+          <p class="section-kicker">DATA COVERAGE</p>
+          <h2 id="coverage-title">Known export gap</h2>
+        </div>
+        <div>
+          <p id="coverage-detail">Some orders are not represented in the current dataset.</p>
+          <p class="coverage-meta" id="coverage-meta"></p>
+        </div>
       </section>
 
       <section class="map-panel">
@@ -209,6 +220,6 @@
     </main>
 
     <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
-    <script src="app.js?v=atlas-1"></script>
+    <script src="app.js?v=atlas-2"></script>
   </body>
 </html>

@@ -87,6 +87,27 @@ function formatMonth(month) {
   return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${month}-01T00:00:00Z`));
 }
 
+function formatCoverageDate(value) {
+  if (!value) return "unknown date";
+  return new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${value}T00:00:00Z`));
+}
+
+function renderCoverage(coverage) {
+  const notice = el("data-coverage");
+  const incomplete = coverage?.status === "incomplete";
+  notice.hidden = !incomplete;
+  if (!incomplete) return false;
+  const gaps = Array.isArray(coverage.knownGaps) ? coverage.knownGaps : [];
+  el("coverage-detail").textContent = coverage.note || "Some orders are not represented in the current dataset. Headline totals reflect known records only.";
+  const gapLabel = gaps.length === 1 ? "1 known gap" : `${gaps.length} known gaps`;
+  const rangeLabel = gaps.length === 1
+    ? `${formatCoverageDate(gaps[0].start)}–${formatCoverageDate(gaps[0].end)}`
+    : gapLabel;
+  const asOfLabel = coverage.asOf ? `Known through ${formatCoverageDate(coverage.asOf)}` : "Coverage date unavailable";
+  el("coverage-meta").textContent = `${asOfLabel} · ${rangeLabel}`;
+  return true;
+}
+
 function titleCase(value) {
   return value.toLocaleLowerCase().replace(/\b\w/g, character => character.toUpperCase());
 }
@@ -632,10 +653,14 @@ fetch("data/shipments.json", { cache: "no-store" })
   .then(response => { if (!response.ok) throw new Error(`Data request failed: ${response.status}`); return response.json(); })
   .then(async data => {
     dataset = data;
+    const coverageIncomplete = renderCoverage(data.dataCoverage);
     populateFilters(data.packages);
     await styleReady;
     applyFilters();
-    if (data.generatedAt) el("updated-at").textContent = `Updated ${new Date(data.generatedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}`;
+    if (data.generatedAt) {
+      const updated = `Updated ${new Date(data.generatedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}`;
+      el("updated-at").textContent = coverageIncomplete ? `${updated} · Coverage incomplete` : updated;
+    }
     el("filter-month").addEventListener("change", () => { stopTimeline(); timelineCumulative = false; applyFilters(); });
     el("filter-region").addEventListener("change", applyFilters);
     el("filter-console").addEventListener("change", applyFilters);

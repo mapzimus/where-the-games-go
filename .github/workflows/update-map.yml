@@ -32,7 +32,8 @@ jobs:
             echo "configured=true" >> "$GITHUB_OUTPUT"
           else
             echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "eBay refresh skipped: add EBAY_CLIENT_ID, EBAY_CLIENT_SECRET, and EBAY_REFRESH_TOKEN as repository secrets."
+            echo "::error title=eBay refresh is not configured::Add EBAY_CLIENT_ID, EBAY_CLIENT_SECRET, and EBAY_REFRESH_TOKEN as repository secrets. No orders were fetched."
+            exit 1
           fi
       - uses: actions/checkout@v6
         if: steps.secrets.outputs.configured == 'true'

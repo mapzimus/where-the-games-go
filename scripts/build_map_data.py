@@ -457,7 +457,13 @@ def validate_public(records: list[dict]) -> None:
             raise ValueError("Public via schema violation")
 
 
-def build_payload(records: list[dict], origin_name: str, origin: tuple[float, float], highlights: dict | None = None) -> dict:
+def build_payload(
+    records: list[dict],
+    origin_name: str,
+    origin: tuple[float, float],
+    highlights: dict | None = None,
+    coverage: dict | None = None,
+) -> dict:
     records.sort(key=lambda x: (x["month"], x["city"], x["id"]))
     payload = {
         "schemaVersion": 1,
@@ -473,6 +479,8 @@ def build_payload(records: list[dict], origin_name: str, origin: tuple[float, fl
     }
     if highlights:
         payload["financialHighlights"] = highlights
+    if coverage:
+        payload["dataCoverage"] = coverage
     return payload
 
 
@@ -489,6 +497,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=Path("public/data/shipments.json"))
     parser.add_argument("--cache", type=Path, default=Path("data/city-cache.json"))
     parser.add_argument("--highlights", type=Path, default=Path("data/public-highlights.json"), help="Safe aggregate highlights with no dollar amounts")
+    parser.add_argument("--coverage", type=Path, default=Path("data/public-coverage.json"), help="Safe public metadata describing known export coverage")
     parser.add_argument("--existing", type=Path, help="Existing public dataset to merge for rolling API updates")
     parser.add_argument("--replace-hub-records", action="store_true", help="Replace matching hub-only records when final destinations are recovered")
     parser.add_argument("--origin", default="Salem, Massachusetts, United States")
@@ -509,7 +518,8 @@ def main() -> int:
         records = remove_superseded_hub_records(records, new_records)
     validate_public(records)
     highlights = json.loads(args.highlights.read_text(encoding="utf-8")) if args.highlights.exists() else None
-    payload = build_payload(records, f"{origin_city}, {origin_region}", origin, highlights)
+    coverage = json.loads(args.coverage.read_text(encoding="utf-8")) if args.coverage.exists() else None
+    payload = build_payload(records, f"{origin_city}, {origin_region}", origin, highlights, coverage)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Published {payload['summary']['packages']} packages / {payload['summary']['games']} games to {args.output}")

@@ -1,0 +1,11 @@
+{
+  "status": "incomplete",
+  "asOf": "2026-08-08",
+  "knownGaps": [
+    {
+      "start": "2026-07-19",
+      "end": "2026-08-02"
+    }
+  ],
+  "note": "The available eBay exports do not include orders sold from July 19 through August 2, 2026. Headline totals reflect known records only."
+}
