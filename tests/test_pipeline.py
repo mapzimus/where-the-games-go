@@ -189,11 +189,12 @@ def test_checked_in_dataset_respects_public_schema():
     assert payload["summary"]["regions"] == len({(item["country"], item["region"]) for item in payload["packages"]})
     assert payload["financialHighlights"]["topSpendingState"]["label"] == "Florida"
     assert payload["financialHighlights"]["topGrossingConsole"]["label"] == "Nintendo GameCube"
-    assert payload["financialHighlights"]["topConsoleByUnits"] == {"label": "PlayStation 2", "gameCount": 370}
+    assert payload["financialHighlights"]["topConsoleByUnits"] == {"label": "PlayStation 2", "gameCount": 388}
     assert "$" not in json.dumps(payload["financialHighlights"])
     assert payload["dataCoverage"] == json.loads((ROOT / "data" / "public-coverage.json").read_text(encoding="utf-8"))
-    assert payload["dataCoverage"]["status"] == "incomplete"
-    assert payload["dataCoverage"]["knownGaps"] == [{"start": "2026-07-19", "end": "2026-08-02"}]
+    assert payload["dataCoverage"]["status"] == "complete"
+    assert payload["dataCoverage"]["asOf"] == "2026-08-20"
+    assert payload["dataCoverage"]["knownGaps"] == []
 
 
 def test_pages_workflows_deploy_both_pushes_and_scheduled_refreshes():

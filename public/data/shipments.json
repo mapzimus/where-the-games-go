@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-10T03:49:30.887830Z",
+  "generatedAt": "2026-08-21T09:41:50.140470Z",
   "origin": {
     "name": "Salem, Massachusetts",
     "lat": 42.51953,
     "lng": -70.89672
   },
   "summary": {
-    "packages": 1040,
-    "games": 1040,
-    "miles": 1273937,
+    "packages": 1120,
+    "games": 1120,
+    "miles": 1362743,
     "regions": 63
   },
   "packages": [
@@ -14238,6 +14238,34 @@
       "id": "journey-02943d3783f3-1"
     },
     {
+      "city": "Acworth",
+      "region": "GA",
+      "country": "United States",
+      "lat": 34.06593,
+      "lng": -84.67688,
+      "month": "2026-07",
+      "distanceMiles": 946,
+      "gameCount": 1,
+      "titles": [
+        "Forza Motorsport (Microsoft Xbox, 2005) CIB, Complete, Tested & Works"
+      ],
+      "id": "journey-5400bc47736a-1"
+    },
+    {
+      "city": "Ashfield",
+      "region": "MA",
+      "country": "United States",
+      "lat": 42.52604,
+      "lng": -72.79092,
+      "month": "2026-07",
+      "distanceMiles": 96,
+      "gameCount": 1,
+      "titles": [
+        "Full Spectrum Warrior - PS2 - PlayStation 2 - Complete w/ Manual - Tested"
+      ],
+      "id": "journey-a18af8200160-1"
+    },
+    {
       "city": "Bedford",
       "region": "IN",
       "country": "United States",
@@ -14250,6 +14278,20 @@
         "Red Dead Redemption Sony PlayStation 3, 2010 CIB Complete with Map Rockstar Game"
       ],
       "id": "journey-e4b95adb5a3b-1"
+    },
+    {
+      "city": "Bellingham",
+      "region": "WA",
+      "country": "United States",
+      "lat": 48.7544,
+      "lng": -122.47884,
+      "month": "2026-07",
+      "distanceMiles": 2480,
+      "gameCount": 1,
+      "titles": [
+        "Need for Speed: Underground (Microsoft Xbox) Complete w/ Manual"
+      ],
+      "id": "journey-43afe9debf19-1"
     },
     {
       "city": "Berlin Center",
@@ -14294,6 +14336,34 @@
       "id": "journey-50f3af51c393-1"
     },
     {
+      "city": "Brooklyn",
+      "region": "NY",
+      "country": "United States",
+      "lat": 40.6526,
+      "lng": -73.94972,
+      "month": "2026-07",
+      "distanceMiles": 204,
+      "gameCount": 1,
+      "titles": [
+        "Fifa Soccer 2002 - Sony PlayStation 2 CIB Complete PS2 Tested"
+      ],
+      "id": "journey-56ac86efb6af-1"
+    },
+    {
+      "city": "Carson",
+      "region": "CA",
+      "country": "United States",
+      "lat": 33.8322,
+      "lng": -118.25175,
+      "month": "2026-07",
+      "distanceMiles": 2606,
+      "gameCount": 1,
+      "titles": [
+        "Metal Gear Survive PS4 PlayStation 4 Konami Survival Action Shooter Game"
+      ],
+      "id": "journey-4298d01043a4-1"
+    },
+    {
       "city": "Charlotte",
       "region": "NC",
       "country": "United States",
@@ -14306,6 +14376,76 @@
         "WWF War Zone (PS1 PlayStation One) CIB Complete Tested"
       ],
       "id": "journey-51427b88780b-1"
+    },
+    {
+      "city": "East Troy",
+      "region": "WI",
+      "country": "United States",
+      "lat": 42.78519,
+      "lng": -88.40544,
+      "month": "2026-07",
+      "distanceMiles": 888,
+      "gameCount": 1,
+      "titles": [
+        "Madden NFL 2001 (PlayStation 2, 2000) Complete Tested Working"
+      ],
+      "id": "journey-a49f13272dc3-1"
+    },
+    {
+      "city": "Evergreen Park",
+      "region": "IL",
+      "country": "United States",
+      "lat": 41.72014,
+      "lng": -87.70133,
+      "month": "2026-07",
+      "distanceMiles": 862,
+      "gameCount": 1,
+      "titles": [
+        "Crash Nitro Kart (Microsoft Xbox, 2003) CIB Complete in Box w/ Manual"
+      ],
+      "id": "journey-a71b68c41659-1"
+    },
+    {
+      "city": "Florissant",
+      "region": "MO",
+      "country": "United States",
+      "lat": 38.79197,
+      "lng": -90.32278,
+      "month": "2026-07",
+      "distanceMiles": 1048,
+      "gameCount": 1,
+      "titles": [
+        "Star Wars Episode 3 III Revenge of the Sith (Xbox, 2005) CIB Complete in Box"
+      ],
+      "id": "journey-0de3a5dab0b5-1"
+    },
+    {
+      "city": "Forney",
+      "region": "TX",
+      "country": "United States",
+      "lat": 32.74789,
+      "lng": -96.47193,
+      "month": "2026-07",
+      "distanceMiles": 1546,
+      "gameCount": 1,
+      "titles": [
+        "Tony Hawk's Pro Skater 3 (Microsoft Original Xbox, 2002) Complete CIB W/ Manual"
+      ],
+      "id": "journey-258f591b4a32-1"
+    },
+    {
+      "city": "Garland",
+      "region": "TX",
+      "country": "United States",
+      "lat": 32.91262,
+      "lng": -96.63888,
+      "month": "2026-07",
+      "distanceMiles": 1547,
+      "gameCount": 1,
+      "titles": [
+        "Pokémon Groudon EX XY42 Black Star Promo Holo Holographic Card 2015"
+      ],
+      "id": "journey-8802a0c66dde-1"
     },
     {
       "city": "Glenview",
@@ -14322,6 +14462,20 @@
       "id": "journey-298a29fa057d-1"
     },
     {
+      "city": "Greenwood Lake",
+      "region": "NY",
+      "country": "United States",
+      "lat": 41.22259,
+      "lng": -74.29432,
+      "month": "2026-07",
+      "distanceMiles": 196,
+      "gameCount": 1,
+      "titles": [
+        "Freedom Fighters PS2 Sony PlayStation 2 - 2003 CIB w/MANUAL - Tested!!"
+      ],
+      "id": "journey-550ca193c39b-1"
+    },
+    {
       "city": "Highland",
       "region": "MI",
       "country": "United States",
@@ -14336,6 +14490,48 @@
       "id": "journey-5ef7376803b5-1"
     },
     {
+      "city": "Hudson",
+      "region": "NY",
+      "country": "United States",
+      "lat": 42.25286,
+      "lng": -73.79096,
+      "month": "2026-07",
+      "distanceMiles": 149,
+      "gameCount": 1,
+      "titles": [
+        "Enter the Matrix (Microsoft Xbox, 2003) CIB Complete"
+      ],
+      "id": "journey-ff3a78043585-1"
+    },
+    {
+      "city": "Huntsville",
+      "region": "AL",
+      "country": "United States",
+      "lat": 34.72985,
+      "lng": -86.5859,
+      "month": "2026-07",
+      "distanceMiles": 1001,
+      "gameCount": 1,
+      "titles": [
+        "Gran Turismo 5 (Sony PlayStation 3, 2010) CIB CLEANED/TESTED"
+      ],
+      "id": "journey-c4409e5eabfa-1"
+    },
+    {
+      "city": "Liberty",
+      "region": "NY",
+      "country": "United States",
+      "lat": 41.80121,
+      "lng": -74.74663,
+      "month": "2026-07",
+      "distanceMiles": 203,
+      "gameCount": 1,
+      "titles": [
+        "Far Cry 5 PS4"
+      ],
+      "id": "journey-4f31fb7120d0-1"
+    },
+    {
       "city": "Manchester",
       "region": "NH",
       "country": "United States",
@@ -14348,6 +14544,34 @@
         "2021 Pokemon Gyarados VMAX Sword & Shield: Evolving Skies Full Art #029/203"
       ],
       "id": "journey-cbbf6d87c467-1"
+    },
+    {
+      "city": "Maumelle",
+      "region": "AR",
+      "country": "United States",
+      "lat": 34.85661,
+      "lng": -92.40569,
+      "month": "2026-07",
+      "distanceMiles": 1270,
+      "gameCount": 1,
+      "titles": [
+        "PS2 Call of Duty 2: Big Red One (Sony PlayStation 2, 2005) Complete w/Manual"
+      ],
+      "id": "journey-7a85e05d6648-1"
+    },
+    {
+      "city": "Maumelle",
+      "region": "AR",
+      "country": "United States",
+      "lat": 34.85661,
+      "lng": -92.40569,
+      "month": "2026-07",
+      "distanceMiles": 1270,
+      "gameCount": 1,
+      "titles": [
+        "Battlefield 2 Modern Combat Sony PlayStation 2 PS2 Complete + Manual CIB"
+      ],
+      "id": "journey-d3baceeaafd5-1"
     },
     {
       "city": "Miami",
@@ -14378,6 +14602,48 @@
       "id": "journey-7d6227f89cee-1"
     },
     {
+      "city": "Mountain Mesa",
+      "region": "CA",
+      "country": "United States",
+      "lat": 35.64017,
+      "lng": -118.40232,
+      "month": "2026-07",
+      "distanceMiles": 2558,
+      "gameCount": 1,
+      "titles": [
+        "Wii Play Nintendo Wii Game CIB- Complete W/ Manual - Tested & Working"
+      ],
+      "id": "journey-1dc1fbcea6fd-1"
+    },
+    {
+      "city": "North Las Vegas",
+      "region": "NV",
+      "country": "United States",
+      "lat": 36.20052,
+      "lng": -115.12147,
+      "month": "2026-07",
+      "distanceMiles": 2375,
+      "gameCount": 1,
+      "titles": [
+        "Call of Duty Modern Warfare 2 (PlayStation 3) PS3 with Manual"
+      ],
+      "id": "journey-85f1037b8680-1"
+    },
+    {
+      "city": "North Olmsted",
+      "region": "OH",
+      "country": "United States",
+      "lat": 41.4156,
+      "lng": -81.92347,
+      "month": "2026-07",
+      "distanceMiles": 571,
+      "gameCount": 1,
+      "titles": [
+        "Harry Potter and the Chamber of Secrets (Microsoft Xbox) CIB, Tested & Working"
+      ],
+      "id": "journey-aa54d3918acc-1"
+    },
+    {
       "city": "Palm Coast",
       "region": "FL",
       "country": "United States",
@@ -14390,6 +14656,20 @@
         "Shenmue II 2 Original XBOX & Shenmue DVD Movie CIB Black Case"
       ],
       "id": "journey-29203d1e8c6f-1"
+    },
+    {
+      "city": "Philadelphia",
+      "region": "PA",
+      "country": "United States",
+      "lat": 39.95272,
+      "lng": -75.16353,
+      "month": "2026-07",
+      "distanceMiles": 284,
+      "gameCount": 1,
+      "titles": [
+        "Devil May Cry (Sony PlayStation 2 PS2, 2001) Black Label CIB Tested & Working"
+      ],
+      "id": "journey-688532865f3a-1"
     },
     {
       "city": "Phoenixville",
@@ -14432,6 +14712,20 @@
         "Skate 3 Microsoft Xbox 360 Video Game Tested Works"
       ],
       "id": "journey-fd886cfbecc6-1"
+    },
+    {
+      "city": "Saint Ann",
+      "region": "MO",
+      "country": "United States",
+      "lat": 38.72727,
+      "lng": -90.38317,
+      "month": "2026-07",
+      "distanceMiles": 1052,
+      "gameCount": 1,
+      "titles": [
+        "The DaVinci Code (Sony PlayStation 2, PS2, 2006) CIB Complete Tested"
+      ],
+      "id": "journey-7cef5e2fd826-1"
     },
     {
       "city": "San Antonio",
@@ -14532,6 +14826,20 @@
       "id": "journey-7864a82084ce-1"
     },
     {
+      "city": "Upper Darby",
+      "region": "PA",
+      "country": "United States",
+      "lat": 39.92836,
+      "lng": -75.27371,
+      "month": "2026-07",
+      "distanceMiles": 289,
+      "gameCount": 1,
+      "titles": [
+        "Gran Turismo 3 A-Spec PlayStation 2 Greatest Hits Complete with Manual"
+      ],
+      "id": "journey-a677e04993af-1"
+    },
+    {
       "city": "Vallejo",
       "region": "CA",
       "country": "United States",
@@ -14574,6 +14882,293 @@
       "id": "journey-9488999dd20a-1"
     },
     {
+      "city": "Yuba City",
+      "region": "CA",
+      "country": "United States",
+      "lat": 39.14045,
+      "lng": -121.61691,
+      "month": "2026-07",
+      "distanceMiles": 2622,
+      "gameCount": 1,
+      "titles": [
+        "ESPN NFL 2K5 (Xbox, 2004) CIB Tested And Working"
+      ],
+      "id": "journey-82a9af3ea591-1"
+    },
+    {
+      "city": "patchogue",
+      "region": "NY",
+      "country": "United States",
+      "lat": 40.76565,
+      "lng": -73.01511,
+      "month": "2026-07",
+      "distanceMiles": 163,
+      "gameCount": 1,
+      "titles": [
+        "Spyhunter [Greatest Hits] Sony PlayStation 2 PS2 Complete + Manual CIB"
+      ],
+      "id": "journey-76a1d620f9e6-1"
+    },
+    {
+      "city": "patchogue",
+      "region": "NY",
+      "country": "United States",
+      "lat": 40.76565,
+      "lng": -73.01511,
+      "month": "2026-07",
+      "distanceMiles": 163,
+      "gameCount": 1,
+      "titles": [
+        "The Great Escape (Sony Playstation 2, PS2 2003) - Complete With Manual"
+      ],
+      "id": "journey-fba91c6bd0ea-1"
+    },
+    {
+      "city": "Aldergrove",
+      "region": "BC",
+      "country": "Canada",
+      "lat": 49.05966,
+      "lng": -122.49224,
+      "month": "2026-08",
+      "distanceMiles": 2477,
+      "gameCount": 1,
+      "titles": [
+        "Test Drive (Microsoft Xbox, 2002) Platinum Hits Complete With Manual & Tested"
+      ],
+      "via": {
+        "city": "Glendale Heights",
+        "region": "IL",
+        "country": "United States",
+        "lat": 41.91895,
+        "lng": -88.07657
+      },
+      "id": "journey-40d098df0126-1"
+    },
+    {
+      "city": "Anderson",
+      "region": "IN",
+      "country": "United States",
+      "lat": 40.10532,
+      "lng": -85.68025,
+      "month": "2026-08",
+      "distanceMiles": 784,
+      "gameCount": 1,
+      "titles": [
+        "Marvel Ultimate Alliance - Microsoft Xbox 360 2006 Disc Only"
+      ],
+      "id": "journey-81b2bc1e7fb3-1"
+    },
+    {
+      "city": "Antioch",
+      "region": "CA",
+      "country": "United States",
+      "lat": 38.00933,
+      "lng": -121.81069,
+      "month": "2026-08",
+      "distanceMiles": 2662,
+      "gameCount": 1,
+      "titles": [
+        "Polaroid One Step Instant Camera Black for 600 Film w/ Box & Manual-Tested Works"
+      ],
+      "id": "journey-438ef5b6fda7-1"
+    },
+    {
+      "city": "Arlington",
+      "region": "VT",
+      "country": "United States",
+      "lat": 43.07501,
+      "lng": -73.15419,
+      "month": "2026-08",
+      "distanceMiles": 121,
+      "gameCount": 1,
+      "titles": [
+        "Tom Clancys Splinter Cell (PlayStation 2 PS2) Complete CIB Tested"
+      ],
+      "id": "journey-1084f1ec9cce-1"
+    },
+    {
+      "city": "Aston",
+      "region": "PA",
+      "country": "United States",
+      "lat": 39.87265,
+      "lng": -75.44055,
+      "month": "2026-08",
+      "distanceMiles": 299,
+      "gameCount": 1,
+      "titles": [
+        "Rock Band Pro-mark Wood Drum Sticks PS3 PS4 Xbox 360 Nintendo Wii OEM"
+      ],
+      "id": "journey-0021ba82c793-1"
+    },
+    {
+      "city": "Belle Vernon",
+      "region": "PA",
+      "country": "United States",
+      "lat": 40.12507,
+      "lng": -79.86644,
+      "month": "2026-08",
+      "distanceMiles": 494,
+      "gameCount": 1,
+      "titles": [
+        "Dedenne Uncommon Generations: Radiant Collection RC10/RC32 LP"
+      ],
+      "id": "journey-beca6349e7bf-1"
+    },
+    {
+      "city": "Brandon",
+      "region": "FL",
+      "country": "United States",
+      "lat": 27.9378,
+      "lng": -82.28592,
+      "month": "2026-08",
+      "distanceMiles": 1193,
+      "gameCount": 1,
+      "titles": [
+        "Marvel Ultimate Alliance 2 (Microsoft Xbox 360, 2009) Disc Only Tested"
+      ],
+      "id": "journey-9bcadb75ef91-1"
+    },
+    {
+      "city": "Burnsville",
+      "region": "NC",
+      "country": "United States",
+      "lat": 35.91722,
+      "lng": -82.29967,
+      "month": "2026-08",
+      "distanceMiles": 761,
+      "gameCount": 1,
+      "titles": [
+        "Halo: Reach (Microsoft Xbox 360) Complete CIB Tested"
+      ],
+      "id": "journey-3efc261f5085-1"
+    },
+    {
+      "city": "Centreville",
+      "region": "VA",
+      "country": "United States",
+      "lat": 38.83761,
+      "lng": -77.43473,
+      "month": "2026-08",
+      "distanceMiles": 426,
+      "gameCount": 1,
+      "titles": [
+        "Pokémon TCG Gengar Trainer Gallery Tg06/tg30 2022 Sword Shield Lost Origin NM"
+      ],
+      "id": "journey-0573c70b130f-1"
+    },
+    {
+      "city": "Charleston",
+      "region": "WV",
+      "country": "United States",
+      "lat": 38.3506,
+      "lng": -81.63328,
+      "month": "2026-08",
+      "distanceMiles": 633,
+      "gameCount": 1,
+      "titles": [
+        "Thrillville (Sony PlayStation 2, 2006) CIB"
+      ],
+      "id": "journey-7b96fa4cf0b9-1"
+    },
+    {
+      "city": "Chelmsford",
+      "region": "MA",
+      "country": "United States",
+      "lat": 42.59686,
+      "lng": -71.35176,
+      "month": "2026-08",
+      "distanceMiles": 24,
+      "gameCount": 1,
+      "titles": [
+        "The Amazing Spider-Man Microsoft Xbox 360 Disc Only"
+      ],
+      "id": "journey-5a5dd310a8d8-1"
+    },
+    {
+      "city": "Clayton",
+      "region": "OK",
+      "country": "United States",
+      "lat": 34.58955,
+      "lng": -95.35275,
+      "month": "2026-08",
+      "distanceMiles": 1424,
+      "gameCount": 1,
+      "titles": [
+        "Burnout: Revenge (Microsoft Xbox 2006) CIB With Manual -Tested"
+      ],
+      "id": "journey-d87e2c72ba0a-1"
+    },
+    {
+      "city": "Columbus",
+      "region": "OH",
+      "country": "United States",
+      "lat": 39.96226,
+      "lng": -83.00071,
+      "month": "2026-08",
+      "distanceMiles": 653,
+      "gameCount": 1,
+      "titles": [
+        "World Tour Soccer Sony PlayStation Portable Sony PSP Video Game Disc Only"
+      ],
+      "id": "journey-b9dae2cad354-1"
+    },
+    {
+      "city": "Dallas",
+      "region": "TX",
+      "country": "United States",
+      "lat": 32.77627,
+      "lng": -96.79686,
+      "month": "2026-08",
+      "distanceMiles": 1560,
+      "gameCount": 1,
+      "titles": [
+        "Tekken Tag Tournament Greatest Hits (Sony PlayStation 2, 2002), CIB, Tested"
+      ],
+      "id": "journey-89222242350e-1"
+    },
+    {
+      "city": "Des Moines",
+      "region": "WA",
+      "country": "United States",
+      "lat": 47.39883,
+      "lng": -122.30991,
+      "month": "2026-08",
+      "distanceMiles": 2490,
+      "gameCount": 1,
+      "titles": [
+        "Star Wars: Battlefront II 2 (Original Xbox) Black Label Disc Only TESTED"
+      ],
+      "id": "journey-99ecccd86561-1"
+    },
+    {
+      "city": "Devens",
+      "region": "MA",
+      "country": "United States",
+      "lat": 42.53895,
+      "lng": -71.60944,
+      "month": "2026-08",
+      "distanceMiles": 36,
+      "gameCount": 1,
+      "titles": [
+        "Skate 1 Xbox 360 Complete CIB TESTED Excellent Condition - Ships Next Day!"
+      ],
+      "id": "journey-460e0c62553b-1"
+    },
+    {
+      "city": "Eugene",
+      "region": "OR",
+      "country": "United States",
+      "lat": 44.05051,
+      "lng": -123.09505,
+      "month": "2026-08",
+      "distanceMiles": 2583,
+      "gameCount": 1,
+      "titles": [
+        "Sleeping Dogs (Microsoft Xbox 360, 2012) Disc Only"
+      ],
+      "id": "journey-d45e11d13c55-1"
+    },
+    {
       "city": "Gainesville",
       "region": "GA",
       "country": "United States",
@@ -14586,6 +15181,90 @@
         "The Walking Dead: Survival Instinct (Sony PlayStation 3, 2013) Complete Tested"
       ],
       "id": "journey-ee896040dd3b-1"
+    },
+    {
+      "city": "Holmdel",
+      "region": "NJ",
+      "country": "United States",
+      "lat": 40.34511,
+      "lng": -74.18403,
+      "month": "2026-08",
+      "distanceMiles": 227,
+      "gameCount": 1,
+      "titles": [
+        "Forza Motorsport 4 (Microsoft Xbox 360, 2011) Play Disc 1 Only | Tested"
+      ],
+      "id": "journey-d2dc9a59b768-1"
+    },
+    {
+      "city": "Houston",
+      "region": "TX",
+      "country": "United States",
+      "lat": 29.75894,
+      "lng": -95.3677,
+      "month": "2026-08",
+      "distanceMiles": 1616,
+      "gameCount": 1,
+      "titles": [
+        "Need For Speed Undercover (Sony Playstation 3, PS3)"
+      ],
+      "id": "journey-10a3523fe967-1"
+    },
+    {
+      "city": "Houston",
+      "region": "TX",
+      "country": "United States",
+      "lat": 29.75894,
+      "lng": -95.3677,
+      "month": "2026-08",
+      "distanceMiles": 1616,
+      "gameCount": 1,
+      "titles": [
+        "Microsoft Xbox 360 - Wireless Speed Wheel Software Disc Only Tested Working"
+      ],
+      "id": "journey-c810650efe9b-1"
+    },
+    {
+      "city": "Kalispell",
+      "region": "MT",
+      "country": "United States",
+      "lat": 48.20216,
+      "lng": -114.31532,
+      "month": "2026-08",
+      "distanceMiles": 2115,
+      "gameCount": 1,
+      "titles": [
+        "Destiny: The Taken King -- Legendary Edition Sony PlayStation 3 2015"
+      ],
+      "id": "journey-0eb7359b82cf-1"
+    },
+    {
+      "city": "Lake Mills",
+      "region": "IA",
+      "country": "United States",
+      "lat": 43.41937,
+      "lng": -93.53362,
+      "month": "2026-08",
+      "distanceMiles": 1143,
+      "gameCount": 1,
+      "titles": [
+        "LEGO Star Wars: The Video Game Original Xbox Game Complete (Platinum Hits)"
+      ],
+      "id": "journey-9fa4a73d4df9-1"
+    },
+    {
+      "city": "Las Vegas",
+      "region": "NV",
+      "country": "United States",
+      "lat": 36.16743,
+      "lng": -115.14841,
+      "month": "2026-08",
+      "distanceMiles": 2377,
+      "gameCount": 1,
+      "titles": [
+        "LEGO Star Wars 2 II The Original Trilogy (Xbox 2006) Complete w/ Manual"
+      ],
+      "id": "journey-a46cf7c13225-1"
     },
     {
       "city": "Lenox",
@@ -14602,6 +15281,272 @@
       "id": "journey-058628c968b6-1"
     },
     {
+      "city": "Manchester",
+      "region": "PA",
+      "country": "United States",
+      "lat": 40.05881,
+      "lng": -76.72114,
+      "month": "2026-08",
+      "distanceMiles": 347,
+      "gameCount": 1,
+      "titles": [
+        "Mawile 24/106 Great Encounters Reverse Holo Pokemon"
+      ],
+      "id": "journey-7460a973bdb8-1"
+    },
+    {
+      "city": "Marble Hill",
+      "region": "MO",
+      "country": "United States",
+      "lat": 37.30589,
+      "lng": -89.97038,
+      "month": "2026-08",
+      "distanceMiles": 1070,
+      "gameCount": 1,
+      "titles": [
+        "Skylanders: Swap Force Microsoft Xbox 360 Video Game Disc Only"
+      ],
+      "id": "journey-2c9f57469147-1"
+    },
+    {
+      "city": "Miami",
+      "region": "FL",
+      "country": "United States",
+      "lat": 25.77416,
+      "lng": -80.1936,
+      "month": "2026-08",
+      "distanceMiles": 1271,
+      "gameCount": 1,
+      "titles": [
+        "Call of Duty: Black Ops 2 II (Xbox 360 2012) Disc Only Tested And Working"
+      ],
+      "id": "journey-986f3987fec1-1"
+    },
+    {
+      "city": "Middleboro",
+      "region": "MA",
+      "country": "United States",
+      "lat": 41.89316,
+      "lng": -70.91115,
+      "month": "2026-08",
+      "distanceMiles": 43,
+      "gameCount": 1,
+      "titles": [
+        "Minecraft: Xbox 360 Edition (Microsoft Xbox 360, 2013) Disc Only - Tested"
+      ],
+      "id": "journey-ec9e536e8088-1"
+    },
+    {
+      "city": "Midland",
+      "region": "TX",
+      "country": "United States",
+      "lat": 31.83688,
+      "lng": -102.01038,
+      "month": "2026-08",
+      "distanceMiles": 1852,
+      "gameCount": 1,
+      "titles": [
+        "Kingdra TG03/TG30 Swsh10: Astral Radiance Trainer Gallery Holo"
+      ],
+      "id": "journey-92479d7306e7-1"
+    },
+    {
+      "city": "Mission",
+      "region": "TX",
+      "country": "United States",
+      "lat": 26.21591,
+      "lng": -98.32529,
+      "month": "2026-08",
+      "distanceMiles": 1913,
+      "gameCount": 1,
+      "titles": [
+        "Skylanders Giants Xbox 360 Disc Only Tested Working"
+      ],
+      "id": "journey-f99d63747e3a-1"
+    },
+    {
+      "city": "Montclair",
+      "region": "CA",
+      "country": "United States",
+      "lat": 34.07751,
+      "lng": -117.68978,
+      "month": "2026-08",
+      "distanceMiles": 2570,
+      "gameCount": 1,
+      "titles": [
+        "Street Hoops (Original OG Xbox, 2002) Complete w/ Manual CIB Black Label TESTED"
+      ],
+      "id": "journey-aea9e177f28e-1"
+    },
+    {
+      "city": "New York",
+      "region": "NY",
+      "country": "United States",
+      "lat": 40.71273,
+      "lng": -74.00602,
+      "month": "2026-08",
+      "distanceMiles": 203,
+      "gameCount": 1,
+      "titles": [
+        "Far Cry 5 (Sony PlayStation 4, PS4) Tested & Working"
+      ],
+      "id": "journey-cb0e0a22a635-1"
+    },
+    {
+      "city": "Newark",
+      "region": "DE",
+      "country": "United States",
+      "lat": 39.68284,
+      "lng": -75.75157,
+      "month": "2026-08",
+      "distanceMiles": 320,
+      "gameCount": 1,
+      "titles": [
+        "Test Drive - Playstation 2 PS2 CIB W/Manual Tested Working"
+      ],
+      "id": "journey-0a48fa7b2453-1"
+    },
+    {
+      "city": "Newark",
+      "region": "NJ",
+      "country": "United States",
+      "lat": 40.73566,
+      "lng": -74.17237,
+      "month": "2026-08",
+      "distanceMiles": 209,
+      "gameCount": 1,
+      "titles": [
+        "Star Wars: The Force Unleashed (Sony PS3, 2008) DISC ONLY"
+      ],
+      "id": "journey-ce498f3bcd4b-1"
+    },
+    {
+      "city": "Newburgh",
+      "region": "IN",
+      "country": "United States",
+      "lat": 37.94568,
+      "lng": -87.40466,
+      "month": "2026-08",
+      "distanceMiles": 924,
+      "gameCount": 1,
+      "titles": [
+        "Lego Star Wars III: Nintendo DS - Tested And Working"
+      ],
+      "id": "journey-a9aec732bd27-1"
+    },
+    {
+      "city": "Odem",
+      "region": "TX",
+      "country": "United States",
+      "lat": 27.95031,
+      "lng": -97.58324,
+      "month": "2026-08",
+      "distanceMiles": 1799,
+      "gameCount": 1,
+      "titles": [
+        "Halo: Combat Evolved Halo Series Microsoft Xbox M NTSC-U/C Manual Tested"
+      ],
+      "id": "journey-3861337a4882-1"
+    },
+    {
+      "city": "Orlando",
+      "region": "FL",
+      "country": "United States",
+      "lat": 28.54212,
+      "lng": -81.37905,
+      "month": "2026-08",
+      "distanceMiles": 1129,
+      "gameCount": 1,
+      "titles": [
+        "The Last of Us Remastered PlayStation 4 PS4 Video Game"
+      ],
+      "id": "journey-743a1a98b2e7-1"
+    },
+    {
+      "city": "Quarryville",
+      "region": "PA",
+      "country": "United States",
+      "lat": 39.89705,
+      "lng": -76.16357,
+      "month": "2026-08",
+      "distanceMiles": 328,
+      "gameCount": 1,
+      "titles": [
+        "Nintendo DS Disney Pixar 2006 Cars Game Cartridge Only"
+      ],
+      "id": "journey-477234c7d295-1"
+    },
+    {
+      "city": "Rochester",
+      "region": "NY",
+      "country": "United States",
+      "lat": 43.15729,
+      "lng": -77.61521,
+      "month": "2026-08",
+      "distanceMiles": 343,
+      "gameCount": 1,
+      "titles": [
+        "Crash Bandicoot: N. Sane Trilogy (PlayStation 4, 2017) Disc Only Tested"
+      ],
+      "id": "journey-3fd4c586f2b6-1"
+    },
+    {
+      "city": "San Antonio",
+      "region": "TX",
+      "country": "United States",
+      "lat": 29.4246,
+      "lng": -98.49514,
+      "month": "2026-08",
+      "distanceMiles": 1777,
+      "gameCount": 1,
+      "titles": [
+        "Pokémon Rayquaza 93/113 Legendary Treasures Holo Rare Basic 120 LP"
+      ],
+      "id": "journey-8aeaf29feb87-1"
+    },
+    {
+      "city": "San Diego",
+      "region": "CA",
+      "country": "United States",
+      "lat": 32.71742,
+      "lng": -117.16277,
+      "month": "2026-08",
+      "distanceMiles": 2587,
+      "gameCount": 1,
+      "titles": [
+        "Duck Hunt (Nintendo Entertainment System, 1985) NES 5 Screw Cart Only Tested"
+      ],
+      "id": "journey-e772929a2153-1"
+    },
+    {
+      "city": "San Jose",
+      "region": "CA",
+      "country": "United States",
+      "lat": 37.33617,
+      "lng": -121.89059,
+      "month": "2026-08",
+      "distanceMiles": 2685,
+      "gameCount": 1,
+      "titles": [
+        "Pokémon TCG Latios EX 86/116 Plasma Freeze Ultra Rare Holo Vintage 2013 LP Card"
+      ],
+      "id": "journey-033968c24941-1"
+    },
+    {
+      "city": "South Beloit",
+      "region": "IL",
+      "country": "United States",
+      "lat": 42.49307,
+      "lng": -89.03678,
+      "month": "2026-08",
+      "distanceMiles": 922,
+      "gameCount": 1,
+      "titles": [
+        "Midnight Club Los Angeles Complete Edition Disc Only Xbox 360 Tested And Cleaned"
+      ],
+      "id": "journey-54c3992f4981-1"
+    },
+    {
       "city": "Spring Hill",
       "region": "TN",
       "country": "United States",
@@ -14616,6 +15561,48 @@
       "id": "journey-a43b25b41d4c-1"
     },
     {
+      "city": "St Petersburg",
+      "region": "FL",
+      "country": "United States",
+      "lat": 27.77123,
+      "lng": -82.63403,
+      "month": "2026-08",
+      "distanceMiles": 1213,
+      "gameCount": 1,
+      "titles": [
+        "inFAMOUS: Second Son PS4 2014"
+      ],
+      "id": "journey-19cbde57f7f0-1"
+    },
+    {
+      "city": "Sulphur",
+      "region": "LA",
+      "country": "United States",
+      "lat": 30.23659,
+      "lng": -93.37738,
+      "month": "2026-08",
+      "distanceMiles": 1504,
+      "gameCount": 1,
+      "titles": [
+        "Nicktoons & The Dice Of Destiny (Sony PlayStation 5 PS5, 2025) Sealed New"
+      ],
+      "id": "journey-3d4896a76256-1"
+    },
+    {
+      "city": "Syracuse",
+      "region": "NY",
+      "country": "United States",
+      "lat": 43.04812,
+      "lng": -76.14742,
+      "month": "2026-08",
+      "distanceMiles": 269,
+      "gameCount": 1,
+      "titles": [
+        "Microsoft Xbox Fable Video Game No Manual Tested Working Clean Black Label"
+      ],
+      "id": "journey-c26328dd2386-1"
+    },
+    {
       "city": "Temperance",
       "region": "MI",
       "country": "United States",
@@ -14628,6 +15615,146 @@
         "Dark Void (Microsoft Xbox 360) - CIB Complete w/Manual Tested Works"
       ],
       "id": "journey-668dccf3a19a-1"
+    },
+    {
+      "city": "Vancouver",
+      "region": "WA",
+      "country": "United States",
+      "lat": 45.6307,
+      "lng": -122.67446,
+      "month": "2026-08",
+      "distanceMiles": 2534,
+      "gameCount": 1,
+      "titles": [
+        "Kingdoms of Amalur: Reckoning (Microsoft Xbox 360, 2012) Tested"
+      ],
+      "id": "journey-d8e95cc4d4fa-1"
+    },
+    {
+      "city": "Walnut Grove",
+      "region": "MS",
+      "country": "United States",
+      "lat": 32.59042,
+      "lng": -89.4584,
+      "month": "2026-08",
+      "distanceMiles": 1222,
+      "gameCount": 1,
+      "titles": [
+        "The Crew (Sony PlayStation 4, 2014) PS4 CIB Complete Tested"
+      ],
+      "id": "journey-730c049daba9-1"
+    },
+    {
+      "city": "Walworth",
+      "region": "NY",
+      "country": "United States",
+      "lat": 43.13923,
+      "lng": -77.27221,
+      "month": "2026-08",
+      "distanceMiles": 326,
+      "gameCount": 1,
+      "titles": [
+        "Call of Duty: Black Ops (Xbox 360, 2010) **TESTED** Disc Only Platinum Hits"
+      ],
+      "id": "journey-25a6cdb207cc-1"
+    },
+    {
+      "city": "West Memphis",
+      "region": "AR",
+      "country": "United States",
+      "lat": 35.14648,
+      "lng": -90.18454,
+      "month": "2026-08",
+      "distanceMiles": 1153,
+      "gameCount": 1,
+      "titles": [
+        "OEM Hoveround MPV5 Power Wheelchair Battery Charger FY-4101 OEM 24VDC 5A RD5"
+      ],
+      "id": "journey-e4a30e4cb004-1"
+    },
+    {
+      "city": "Whippany",
+      "region": "NJ",
+      "country": "United States",
+      "lat": 40.82328,
+      "lng": -74.41384,
+      "month": "2026-08",
+      "distanceMiles": 216,
+      "gameCount": 1,
+      "titles": [
+        "Pokémon Snorlax GX Full Art Promo Holo 190 HP SM05 Basic 2016 English"
+      ],
+      "id": "journey-53c4e9f288f4-1"
+    },
+    {
+      "city": "Whippany",
+      "region": "NJ",
+      "country": "United States",
+      "lat": 40.82328,
+      "lng": -74.41384,
+      "month": "2026-08",
+      "distanceMiles": 216,
+      "gameCount": 1,
+      "titles": [
+        "Alakazam Rare SV06: Twilight Masquerade 082/167 Holo LP"
+      ],
+      "id": "journey-eb2b4c5c4b0f-1"
+    },
+    {
+      "city": "Wichita",
+      "region": "KS",
+      "country": "United States",
+      "lat": 37.69224,
+      "lng": -97.33754,
+      "month": "2026-08",
+      "distanceMiles": 1430,
+      "gameCount": 1,
+      "titles": [
+        "X-Men: The Official Game (PlayStation 2, 2006, PS2) Tested & Works CIB W/ Manual"
+      ],
+      "id": "journey-cfc720726bf5-1"
+    },
+    {
+      "city": "Winfield",
+      "region": "WV",
+      "country": "United States",
+      "lat": 38.53314,
+      "lng": -81.89347,
+      "month": "2026-08",
+      "distanceMiles": 639,
+      "gameCount": 1,
+      "titles": [
+        "Brain Age: Train Your Brain in Minutes a Day (Nintendo DS, 2006) Tested Working"
+      ],
+      "id": "journey-557706605b15-1"
+    },
+    {
+      "city": "Woodstock",
+      "region": "GA",
+      "country": "United States",
+      "lat": 34.10141,
+      "lng": -84.51922,
+      "month": "2026-08",
+      "distanceMiles": 938,
+      "gameCount": 1,
+      "titles": [
+        "Crash Team Rumble Deluxe Cross-Gen Edition (Microsoft Xbox One, Series X) Sealed"
+      ],
+      "id": "journey-d02cdb46787e-1"
+    },
+    {
+      "city": "Wyoming",
+      "region": "MI",
+      "country": "United States",
+      "lat": 42.91326,
+      "lng": -85.7057,
+      "month": "2026-08",
+      "distanceMiles": 751,
+      "gameCount": 1,
+      "titles": [
+        "Tekken Tag Tournament Disc Only PlayStation 2 PS2 Tested"
+      ],
+      "id": "journey-a378e0888644-1"
     },
     {
       "city": "Zeeland",
@@ -14656,18 +15783,13 @@
     },
     "topConsoleByUnits": {
       "label": "PlayStation 2",
-      "gameCount": 370
+      "gameCount": 388
     }
   },
   "dataCoverage": {
-    "status": "incomplete",
-    "asOf": "2026-08-08",
-    "knownGaps": [
-      {
-        "start": "2026-07-19",
-        "end": "2026-08-02"
-      }
-    ],
-    "note": "The available eBay exports do not include orders sold from July 19 through August 2, 2026. Headline totals reflect known records only."
+    "status": "complete",
+    "asOf": "2026-08-20",
+    "knownGaps": [],
+    "note": "The available exports provide continuous order coverage through August 20, 2026."
   }
 }
