@@ -6,7 +6,7 @@ An interactive spatial analysis of real sales from North Shore Nostalgia, my eBa
 
 ## What makes this portfolio-ready
 
-- A responsive MapLibre 3D globe developed with my custom **Globe Maps** skill
+- A full three.js scene: a realistic Earth with city lights, clouds, sun glint, and atmosphere
 - Order volume, route distance, geographic reach, platform filters, console rankings, search, and temporal playback
 - Real generalized sales data from North Shore Nostalgia
 - One package per eBay order, with multi-item orders grouped correctly
@@ -88,4 +88,6 @@ The tests cover package grouping, approximate distance, safe-history merging, th
 
 ## Globe implementation, projection, and distance
 
-The globe presentation follows **Globe Maps**, a custom mapping skill I authored for MapLibre GL JS route projects. It informed the projection setup, atmosphere, `style.load` initialization, data-driven layers, selection behavior, and headless testing strategy. Coordinates are stored in WGS 84 (EPSG:4326) and displayed with MapLibre's globe projection, which transitions toward Web Mercator as the user zooms in. Routes are densified great-circle arcs and split at the antimeridian so they remain visually attached to the sphere. Distances use the same great-circle model and are approximate city-to-city measurements rather than road mileage or carrier routes.
+The site has no build step. `public/globe.js` loads three.js 0.170.0 through an import map and renders everything: Earth, clouds, atmosphere, stars, sun, routes, and destination lights. Earth imagery is loaded at runtime from the pinned `three-globe@2.45.0` package on jsDelivr. Scrolling moves the camera, so the page stays one continuous scene.
+
+Coordinates are stored in WGS 84 (EPSG:4326). Routes are great-circle arcs lifted slightly off the surface, and each one fades near Salem so hundreds of shared start points do not merge into a solid shape. Distances use the same great-circle model and are approximate city-to-city measurements rather than road mileage or carrier routes.

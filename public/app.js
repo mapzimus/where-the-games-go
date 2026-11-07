@@ -1,17 +1,24 @@
+import { createGlobe, PALETTE } from "./globe.js?v=atlas-3";
+
+function el(id) { return document.getElementById(id); }
 const fmt = new Intl.NumberFormat("en-US");
 if (new URLSearchParams(window.location.search).has("preview")) document.documentElement.classList.add("preview-mode");
-const DEFAULT_VIEW = { center: [-97, 38], zoom: 1.55, pitch: 0, bearing: 0 };
-const emptyCollection = () => ({ type: "FeatureCollection", features: [] });
+const DEFAULT_VIEW = { lng: -92, lat: 34 };
+const canvas = el("globe-canvas");
+const popupEl = el("globe-popup");
+let popupAnchor = null;
 
-const map = new maplibregl.Map({
-  container: "map",
-  center: DEFAULT_VIEW.center,
-  zoom: DEFAULT_VIEW.zoom,
-  minZoom: 0.5,
-  maxZoom: 16,
-  style: "https://tiles.openfreemap.org/styles/dark"
+const globe = createGlobe({
+  canvas,
+  startLng: DEFAULT_VIEW.lng,
+  startLat: DEFAULT_VIEW.lat,
+  onPick: handlePick,
+  onFrame: positionPopup,
+  onTextureError: () => {
+    el("empty-state").hidden = false;
+    el("empty-state").textContent = "Earth imagery could not be loaded. Refresh the page to try again.";
+  }
 });
-map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
 
 let dataset;
 let timelineTimer = null;
@@ -20,13 +27,12 @@ let timelineIndex = -1;
 let timelineCumulative = false;
 let regionViewMode = "highlight";
 let routesVisible = true;
-let routeOpacity = 0.42;
+let routeOpacity = 0.3;
 let visibleGroups = new Map();
 let visibleHubGroups = new Map();
 let visibleInternational = [];
 let internationalFocusIndex = -1;
-let activePopup = null;
-const routeGeometryCache = new Map();
+const routeArcCache = new Map();
 const INTERNATIONAL_HUB_KEYS = new Set(["glendale heights|il|united states"]);
 const CONSOLES = [
   { id: "switch", label: "Nintendo Switch", pattern: /\bnintendo\s+switch\b|\bswitch\b.*\bgame\b|\bgame\b.*\bswitch\b/i },
@@ -60,7 +66,6 @@ const CONSOLES = [
 ];
 const consoleCache = new WeakMap();
 
-const el = id => document.getElementById(id);
 const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 const stateNames = {
   AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware", FL: "Florida", GA: "Georgia",
@@ -192,57 +197,9 @@ function renderRecords(packages) {
     : "ranking unavailable";
 }
 
-function toVector([lng, lat]) {
-  const phi = lat * Math.PI / 180;
-  const lambda = lng * Math.PI / 180;
-  return [Math.cos(phi) * Math.cos(lambda), Math.cos(phi) * Math.sin(lambda), Math.sin(phi)];
-}
-
-function toLngLat([x, y, z]) {
-  return [Math.atan2(y, x) * 180 / Math.PI, Math.atan2(z, Math.hypot(x, y)) * 180 / Math.PI];
-}
-
-function splitAntimeridian(coordinates) {
-  const segments = [[coordinates[0]]];
-  for (let i = 1; i < coordinates.length; i += 1) {
-    const previous = coordinates[i - 1];
-    const current = coordinates[i];
-    const delta = current[0] - previous[0];
-    if (Math.abs(delta) <= 180) {
-      segments[segments.length - 1].push(current);
-      continue;
-    }
-    const adjustedLng = current[0] + (delta > 0 ? -360 : 360);
-    const boundary = previous[0] > 0 ? 180 : -180;
-    const fraction = (boundary - previous[0]) / (adjustedLng - previous[0]);
-    const crossingLat = previous[1] + (current[1] - previous[1]) * fraction;
-    segments[segments.length - 1].push([boundary, crossingLat]);
-    segments.push([[boundary * -1, crossingLat], current]);
-  }
-  return segments;
-}
-
-function greatCircleGeometry(origin, destination, stepDegrees = 3) {
-  const a = toVector(origin);
-  const b = toVector(destination);
-  const omega = Math.acos(Math.min(1, Math.max(-1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])));
-  const steps = Math.max(2, Math.ceil((omega * 180 / Math.PI) / stepDegrees));
-  const sinOmega = Math.sin(omega);
-  const coordinates = [];
-  for (let i = 0; i <= steps; i += 1) {
-    const t = i / steps;
-    if (sinOmega < 1e-8) {
-      coordinates.push([origin[0] + (destination[0] - origin[0]) * t, origin[1] + (destination[1] - origin[1]) * t]);
-    } else {
-      const weightA = Math.sin((1 - t) * omega) / sinOmega;
-      const weightB = Math.sin(t * omega) / sinOmega;
-      coordinates.push(toLngLat([a[0] * weightA + b[0] * weightB, a[1] * weightA + b[1] * weightB, a[2] * weightA + b[2] * weightB]));
-    }
-  }
-  const segments = splitAntimeridian(coordinates);
-  return segments.length === 1
-    ? { type: "LineString", coordinates: segments[0] }
-    : { type: "MultiLineString", coordinates: segments };
+function arcBetween(key, start, end) {
+  if (!routeArcCache.has(key)) routeArcCache.set(key, globe.buildArc(start, end));
+  return routeArcCache.get(key);
 }
 
 function popup(pkg) {
@@ -271,34 +228,51 @@ function hubPopup(group) {
   return `<div class="popup-place hub-place">eBay international shipping hub</div><div class="popup-title">${escapeHtml(titleCase(first.city))}, ${escapeHtml(first.region)}</div><div class="popup-meta">${packageLabel(total)} reached this handoff point.</div>${recovered}${unavailable}`;
 }
 
-function setMapData(sourceId, features) {
-  map.getSource(sourceId).setData({ type: "FeatureCollection", features });
-}
-
 function updateRouteAppearance() {
-  const intensity = routesVisible ? routeOpacity : 0;
-  const layers = {
-    "route-casing": 0.9,
-    routes: 0.78,
-    "highlight-routes": 1,
-    "onward-route-casing": 0.95,
-    "onward-routes": 0.96,
-    "highlight-onward-routes": 1
-  };
-  Object.entries(layers).forEach(([layerId, baseOpacity]) => {
-    if (map.getLayer(layerId)) map.setPaintProperty(layerId, "line-opacity", baseOpacity * intensity);
-  });
+  globe.setRouteStrength(routesVisible ? routeOpacity : 0);
   el("toggle-routes").textContent = routesVisible ? "Hide lines" : "Show lines";
   el("toggle-routes").setAttribute("aria-pressed", String(routesVisible));
   el("route-opacity-value").textContent = `${Math.round(routeOpacity * 100)}%`;
 }
 
-function appendGeometry(target, geometry) {
-  if (geometry.type === "LineString") target.push(geometry.coordinates);
-  else target.push(...geometry.coordinates);
+function closePopup() {
+  popupAnchor = null;
+  popupEl.hidden = true;
 }
 
-function render(packages, highlightedRegion = null) {
+function openPopup(lng, lat, html) {
+  el("globe-popup-body").innerHTML = html;
+  popupAnchor = { lng, lat };
+  popupEl.hidden = false;
+  positionPopup();
+}
+
+function positionPopup() {
+  if (!popupAnchor) return;
+  const screen = globe.project(popupAnchor.lng, popupAnchor.lat);
+  popupEl.style.visibility = screen.visible ? "visible" : "hidden";
+  const stage = el("explore").getBoundingClientRect();
+  popupEl.style.transform = `translate(${Math.round(screen.x - stage.left)}px, ${Math.round(screen.y - stage.top)}px) translate(-50%, calc(-100% - 14px))`;
+}
+
+function handlePick(item) {
+  if (!item) { closePopup(); return; }
+  if (item.type === "origin") {
+    openPopup(item.lng, item.lat, `<div class="popup-place">Where orders ship from</div><div class="popup-title">${escapeHtml(dataset?.origin?.name || "Salem, Massachusetts")}</div>`);
+    return;
+  }
+  if (item.type === "hub") {
+    const group = visibleHubGroups.get(item.key);
+    if (group) openPopup(item.lng, item.lat, hubPopup(group));
+    return;
+  }
+  const items = visibleGroups.get(item.key) || [];
+  if (items.length) openPopup(item.lng, item.lat, groupedPopup(items));
+}
+
+const pointSize = (count, base) => base + Math.min(Math.sqrt(count) * 2.4, 11);
+
+function render(packages, highlightedRegion = null, freshMonth = null) {
   const grouped = new Map();
   const hubGroups = new Map();
   packages.forEach(pkg => {
@@ -318,64 +292,63 @@ function render(packages, highlightedRegion = null) {
   visibleInternational = packages.filter(isInternationalDestination);
 
   const origin = [dataset.origin.lng, dataset.origin.lat];
-  const routeLines = [];
-  const onwardRouteLines = [];
-  const highlightedRouteLines = [];
-  const highlightedOnwardRouteLines = [];
-  const destinationFeatures = [];
-  const hubFeatures = [];
+  const base = [];
+  const onwardArcs = [];
+  const highlight = [];
+  const highlightOnwardArcs = [];
+  const fresh = [];
+  const destinationItems = [];
+  const hubItems = [];
   grouped.forEach((items, key) => {
     const first = items[0];
     const selected = Boolean(highlightedRegion && regionKey(first) === highlightedRegion);
     const routeEnd = first.via ? [first.via.lng, first.via.lat] : [first.lng, first.lat];
-    const routeKey = `origin|${routeEnd.join("|")}`;
-    if (!routeGeometryCache.has(routeKey)) routeGeometryCache.set(routeKey, greatCircleGeometry(origin, routeEnd));
-    const geometry = routeGeometryCache.get(routeKey);
-    appendGeometry(routeLines, geometry);
-    if (selected) appendGeometry(highlightedRouteLines, geometry);
+    const arc = arcBetween(`origin|${routeEnd.join("|")}`, origin, routeEnd);
+    base.push(arc);
+    if (selected) highlight.push(arc);
+    if (freshMonth && items.some(pkg => pkg.month === freshMonth)) fresh.push(arc);
     if (first.via) {
-      const onwardKey = `onward|${first.via.lng}|${first.via.lat}|${first.lng}|${first.lat}`;
-      if (!routeGeometryCache.has(onwardKey)) routeGeometryCache.set(onwardKey, greatCircleGeometry([first.via.lng, first.via.lat], [first.lng, first.lat]));
-      const onwardGeometry = routeGeometryCache.get(onwardKey);
-      appendGeometry(onwardRouteLines, onwardGeometry);
-      if (selected) appendGeometry(highlightedOnwardRouteLines, onwardGeometry);
+      const onwardArc = arcBetween(`onward|${first.via.lng}|${first.via.lat}|${first.lng}|${first.lat}`, [first.via.lng, first.via.lat], [first.lng, first.lat]);
+      onwardArcs.push(onwardArc);
+      if (selected) highlightOnwardArcs.push(onwardArc);
     }
-    destinationFeatures.push({ type: "Feature", properties: { key, count: items.length, selected }, geometry: { type: "Point", coordinates: [first.lng, first.lat] } });
+    destinationItems.push({
+      key,
+      lng: first.lng,
+      lat: first.lat,
+      size: pointSize(items.length, selected ? 10 : 7),
+      color: selected ? PALETTE.selected : PALETTE.destination
+    });
   });
   hubGroups.forEach((group, key) => {
     const hub = group.location;
     const selected = Boolean(highlightedRegion && [...group.known, ...group.unknown].some(pkg => regionKey(pkg) === highlightedRegion));
-    const routeKey = `origin|${hub.lng}|${hub.lat}`;
-    if (!routeGeometryCache.has(routeKey)) routeGeometryCache.set(routeKey, greatCircleGeometry(origin, [hub.lng, hub.lat]));
-    const geometry = routeGeometryCache.get(routeKey);
-    if (!grouped.size || !group.known.length) {
-      appendGeometry(routeLines, geometry);
-    }
-    if (selected) appendGeometry(highlightedRouteLines, geometry);
-    hubFeatures.push({
-      type: "Feature",
-      properties: { key, count: group.known.length + group.unknown.length, selected },
-      geometry: { type: "Point", coordinates: [hub.lng, hub.lat] }
+    const arc = arcBetween(`origin|${hub.lng}|${hub.lat}`, origin, [hub.lng, hub.lat]);
+    if (!grouped.size || !group.known.length) base.push(arc);
+    if (selected) highlight.push(arc);
+    hubItems.push({
+      key,
+      lng: hub.lng,
+      lat: hub.lat,
+      size: pointSize(group.known.length + group.unknown.length, 8),
+      color: selected ? PALETTE.selected : PALETTE.hub
     });
   });
 
-  setMapData("destinations", destinationFeatures);
-  setMapData("international-hubs", hubFeatures);
-  setMapData("origin", [{ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: origin } }]);
-  setMapData("routes", routeLines.length ? [{ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: routeLines } }] : []);
-  setMapData("onward-routes", onwardRouteLines.length ? [{ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: onwardRouteLines } }] : []);
-  setMapData("highlight-routes", highlightedRouteLines.length ? [{ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: highlightedRouteLines } }] : []);
-  setMapData("highlight-onward-routes", highlightedOnwardRouteLines.length ? [{ type: "Feature", properties: {}, geometry: { type: "MultiLineString", coordinates: highlightedOnwardRouteLines } }] : []);
-
-  if (activePopup) {
-    activePopup.remove();
-    activePopup = null;
-  }
+  globe.setPoints({
+    destinationItems,
+    hubItems,
+    originItem: { key: "origin", lng: origin[0], lat: origin[1], size: 15, color: PALETTE.origin }
+  });
+  globe.setRoutes({ base, onwardArcs, highlight, highlightOnwardArcs });
+  globe.showFreshRoutes(fresh);
+  closePopup();
 
   const miles = packages.reduce((n, pkg) => n + pkg.distanceMiles, 0);
   const regions = new Set(packages.map(pkg => `${pkg.country}|${pkg.region}`)).size;
   const cities = new Set(packages.map(cityKey)).size;
   el("stat-packages").textContent = fmt.format(packages.length);
+  el("stat-items").textContent = fmt.format(packages.reduce((total, pkg) => total + pkg.gameCount, 0));
   el("stat-cities").textContent = fmt.format(cities);
   el("stat-miles").textContent = fmt.format(Math.round(miles));
   el("stat-regions").textContent = fmt.format(regions);
@@ -397,142 +370,6 @@ function render(packages, highlightedRegion = null) {
   el("farthest-title").textContent = farthest ? farthest.titles.join(" · ") : "The longest matching shipment will appear here.";
 }
 
-function setupMapLayers() {
-  map.addSource("routes", { type: "geojson", data: emptyCollection() });
-  map.addSource("onward-routes", { type: "geojson", data: emptyCollection() });
-  map.addSource("highlight-routes", { type: "geojson", data: emptyCollection() });
-  map.addSource("highlight-onward-routes", { type: "geojson", data: emptyCollection() });
-  map.addSource("destinations", { type: "geojson", data: emptyCollection() });
-  map.addSource("international-hubs", { type: "geojson", data: emptyCollection() });
-  map.addSource("origin", { type: "geojson", data: emptyCollection() });
-  map.addLayer({
-    id: "route-casing",
-    type: "line",
-    source: "routes",
-    layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#02070d", "line-width": 2.75, "line-opacity": 0.9 }
-  });
-  map.addLayer({
-    id: "routes",
-    type: "line",
-    source: "routes",
-    layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#77a9d4", "line-width": 1.1, "line-opacity": 0.78 }
-  });
-  map.addLayer({
-    id: "highlight-routes",
-    type: "line",
-    source: "highlight-routes",
-    layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#8fd3c7", "line-width": 2.4, "line-opacity": 1 }
-  });
-  map.addLayer({
-    id: "onward-route-casing",
-    type: "line",
-    source: "onward-routes",
-    layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#02070d", "line-width": 3.5, "line-opacity": 0.95 }
-  });
-  map.addLayer({
-    id: "onward-routes",
-    type: "line",
-    source: "onward-routes",
-    layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#e4bd6a", "line-width": 1.7, "line-opacity": 0.96, "line-dasharray": [2, 1.35] }
-  });
-  map.addLayer({
-    id: "highlight-onward-routes",
-    type: "line",
-    source: "highlight-onward-routes",
-    layout: { "line-cap": "round", "line-join": "round" },
-    paint: { "line-color": "#8fd3c7", "line-width": 2.4, "line-opacity": 1, "line-dasharray": [2, 1.35] }
-  });
-  map.addLayer({
-    id: "destinations",
-    type: "circle",
-    source: "destinations",
-    paint: {
-      "circle-radius": ["interpolate", ["linear"], ["get", "count"], 1, 4, 4, 7, 10, 11],
-      "circle-color": ["case", ["boolean", ["get", "selected"], false], "#8fd3c7", "#ef8c76"],
-      "circle-stroke-color": ["case", ["boolean", ["get", "selected"], false], "#8fd3c7", "#0a1117"],
-      "circle-stroke-width": ["case", ["boolean", ["get", "selected"], false], 2.5, 1.5],
-      "circle-opacity": ["case", ["boolean", ["get", "selected"], false], 1, 0.82]
-    }
-  });
-  map.addLayer({
-    id: "international-hubs",
-    type: "circle",
-    source: "international-hubs",
-    paint: {
-      "circle-radius": ["interpolate", ["linear"], ["get", "count"], 1, 6, 10, 10],
-      "circle-color": ["case", ["boolean", ["get", "selected"], false], "#8fd3c7", "#e4bd6a"],
-      "circle-stroke-color": ["case", ["boolean", ["get", "selected"], false], "#8fd3c7", "#0a1117"],
-      "circle-stroke-width": ["case", ["boolean", ["get", "selected"], false], 2.5, 2],
-      "circle-opacity": 0.96
-    }
-  });
-  map.addLayer({
-    id: "origin",
-    type: "circle",
-    source: "origin",
-    paint: { "circle-radius": 9, "circle-color": "#8fd3c7", "circle-stroke-color": "#8fd3c7", "circle-stroke-width": 2, "circle-blur": 0.08 }
-  });
-  updateRouteAppearance();
-
-  map.on("click", "destinations", event => {
-    event.preventDefault();
-    const key = event.features?.[0]?.properties?.key;
-    const items = visibleGroups.get(key) || [];
-    if (!items.length) return;
-    if (activePopup) activePopup.remove();
-    activePopup = new maplibregl.Popup({ closeButton: true, maxWidth: "300px" })
-      .setLngLat(event.features[0].geometry.coordinates)
-      .setHTML(groupedPopup(items))
-      .addTo(map);
-  });
-  map.on("click", "origin", event => {
-    event.preventDefault();
-    if (activePopup) activePopup.remove();
-    activePopup = new maplibregl.Popup({ closeButton: true })
-      .setLngLat(event.features[0].geometry.coordinates)
-      .setHTML(`<div class="popup-place">Journey origin</div><div class="popup-title">${escapeHtml(dataset?.origin?.name || "Salem, Massachusetts")}</div>`)
-      .addTo(map);
-  });
-  map.on("click", "international-hubs", event => {
-    event.preventDefault();
-    const key = event.features?.[0]?.properties?.key;
-    const group = visibleHubGroups.get(key);
-    if (!group) return;
-    if (activePopup) activePopup.remove();
-    activePopup = new maplibregl.Popup({ closeButton: true, maxWidth: "330px" })
-      .setLngLat(event.features[0].geometry.coordinates)
-      .setHTML(hubPopup(group))
-      .addTo(map);
-  });
-  ["destinations", "international-hubs", "origin"].forEach(layerId => {
-    map.on("mouseenter", layerId, () => { map.getCanvas().style.cursor = "pointer"; });
-    map.on("mouseleave", layerId, () => { map.getCanvas().style.cursor = ""; });
-  });
-}
-
-const styleReady = new Promise(resolve => {
-  map.once("style.load", () => {
-    map.setProjection({ type: "globe" });
-    if (typeof map.setSky === "function") {
-      map.setSky({
-        "sky-color": "#02070d",
-        "horizon-color": "#102235",
-        "fog-color": "#07111c",
-        "sky-horizon-blend": 0.12,
-        "horizon-fog-blend": 0.18,
-        "fog-ground-blend": 0.28
-      });
-    }
-    setupMapLayers();
-    resolve();
-  });
-});
-
 function applyFilters() {
   const month = el("filter-month").value;
   const region = el("filter-region").value;
@@ -545,7 +382,8 @@ function applyFilters() {
   );
   const regionPackages = region === "all" ? basePackages : basePackages.filter(pkg => regionKey(pkg) === region);
   const visiblePackages = region !== "all" && regionViewMode === "isolate" ? regionPackages : basePackages;
-  render(visiblePackages, region === "all" ? null : region);
+  render(visiblePackages, region === "all" ? null : region, timelineCumulative && month !== "all" ? month : null);
+  markTimeline(month);
 
   const selectedOption = el("filter-region").selectedOptions[0];
   const regionLabel = selectedOption?.textContent || "All destinations";
@@ -579,7 +417,8 @@ function setRouteOpacity(event) {
 
 function populateFilters(packages) {
   timelineMonths = [...new Set(packages.map(pkg => pkg.month))].sort();
-  [...timelineMonths].reverse().forEach(month => el("filter-month").add(new Option(month, month)));
+  [...timelineMonths].reverse().forEach(month => el("filter-month").add(new Option(formatMonth(month), month)));
+  buildTimelineStrip(packages);
   const regions = [...new Map(packages.map(pkg => [
     `${pkg.country}|${pkg.region}`,
     pkg.region === pkg.country ? pkg.country : `${pkg.region}, ${pkg.country}`
@@ -591,7 +430,38 @@ function populateFilters(packages) {
   });
 }
 
-function stopTimeline(buttonLabel = "Animate by month") {
+function buildTimelineStrip(packages) {
+  const counts = new Map();
+  packages.forEach(pkg => counts.set(pkg.month, (counts.get(pkg.month) || 0) + 1));
+  const peak = Math.max(...counts.values());
+  const strip = el("timeline-strip");
+  timelineMonths.forEach(month => {
+    const count = counts.get(month);
+    const bar = document.createElement("button");
+    bar.type = "button";
+    bar.dataset.month = month;
+    bar.title = `${formatMonth(month)}: ${packageLabel(count)}`;
+    bar.setAttribute("aria-label", bar.title);
+    bar.style.setProperty("--fill", `${Math.max(8, Math.round(count / peak * 100))}%`);
+    bar.addEventListener("click", () => {
+      stopTimeline();
+      timelineCumulative = false;
+      el("filter-month").value = el("filter-month").value === month ? "all" : month;
+      applyFilters();
+    });
+    strip.append(bar);
+  });
+}
+
+function markTimeline(month) {
+  el("timeline-strip").querySelectorAll("button").forEach(bar => {
+    const active = month === "all" || (timelineCumulative ? bar.dataset.month <= month : bar.dataset.month === month);
+    bar.classList.toggle("is-active", active);
+    bar.setAttribute("aria-pressed", String(month === bar.dataset.month));
+  });
+}
+
+function stopTimeline(buttonLabel = "Play by month") {
   if (timelineTimer) window.clearInterval(timelineTimer);
   timelineTimer = null;
   el("play-timeline").textContent = buttonLabel;
@@ -606,7 +476,7 @@ function showTimelineMonth(index) {
 
 function advanceTimeline() {
   if (timelineIndex >= timelineMonths.length - 1) {
-    stopTimeline("Replay by month");
+    stopTimeline("Replay");
     return;
   }
   showTimelineMonth(timelineIndex + 1);
@@ -614,40 +484,63 @@ function advanceTimeline() {
 
 function toggleTimeline() {
   if (timelineTimer) {
-    stopTimeline("Resume animation");
+    stopTimeline("Resume");
     return;
   }
   if (!timelineMonths.length) return;
   timelineCumulative = true;
   const selectedIndex = timelineMonths.indexOf(el("filter-month").value);
   showTimelineMonth(selectedIndex >= 0 && selectedIndex < timelineMonths.length - 1 ? selectedIndex : 0);
-  el("play-timeline").textContent = "Pause animation";
+  el("play-timeline").textContent = "Pause";
   el("play-timeline").setAttribute("aria-pressed", "true");
   const interval = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 1300 : 850;
   timelineTimer = window.setInterval(advanceTimeline, interval);
 }
 
 function resetGlobe() {
-  map.easeTo({ ...DEFAULT_VIEW, duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 800 });
+  closePopup();
+  globe.flyTo(DEFAULT_VIEW.lng, DEFAULT_VIEW.lat, 1, 900);
 }
 
-function focusInternational() {
+async function focusInternational() {
   if (!visibleInternational.length) return;
   internationalFocusIndex = (internationalFocusIndex + 1) % visibleInternational.length;
   const pkg = visibleInternational[internationalFocusIndex];
-  if (activePopup) activePopup.remove();
-  map.flyTo({
-    center: [pkg.lng, pkg.lat],
-    zoom: 2.35,
-    duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 1200
-  });
-  map.once("moveend", () => {
-    activePopup = new maplibregl.Popup({ closeButton: true, maxWidth: "320px" })
-      .setLngLat([pkg.lng, pkg.lat])
-      .setHTML(popup(pkg))
-      .addTo(map);
-  });
+  closePopup();
+  await globe.flyTo(pkg.lng, pkg.lat, .72, 1400);
+  openPopup(pkg.lng, pkg.lat, popup(pkg));
 }
+
+function setLight(name) {
+  document.querySelectorAll("[data-light]").forEach(button => button.setAttribute("aria-pressed", String(button.dataset.light === name)));
+  globe.setLight(name);
+}
+
+const mix = (a, b, t) => a + (b - a) * t;
+const clamp01 = value => Math.min(1, Math.max(0, value));
+const smooth = t => t * t * (3 - 2 * t);
+
+/** Scroll moves the camera: a close horizon in the hero, the whole disc in the explorer, a quiet backdrop after. */
+function updateFraming(jump = false) {
+  const wide = window.innerWidth > 900;
+  const fit = wide ? 1 : Math.max(1, window.innerHeight / window.innerWidth * .78);
+  const stage = el("explore");
+  const toStage = smooth(clamp01(window.scrollY / Math.max(1, stage.offsetTop)));
+  const pastStage = smooth(clamp01((window.scrollY - stage.offsetTop) / window.innerHeight));
+  const hero = wide ? { distance: 2.05, offsetX: .2, offsetY: .24 } : { distance: 2.5 * fit, offsetX: 0, offsetY: .3 };
+  const explore = { distance: 4.5 * fit, offsetX: wide ? .015 : 0, offsetY: wide ? -.035 : -.08 };
+  const after = { distance: 5.2 * fit, offsetX: wide ? .24 : 0, offsetY: 0 };
+  const framing = {};
+  Object.keys(hero).forEach(key => { framing[key] = mix(mix(hero[key], explore[key], toStage), after[key], pastStage); });
+  if (jump) globe.jumpFraming(framing);
+  else globe.setFraming(framing);
+  const rect = stage.getBoundingClientRect();
+  globe.setInteractive(rect.top < window.innerHeight * .4 && rect.bottom > window.innerHeight * .6);
+}
+
+window.addEventListener("scroll", () => updateFraming(), { passive: true });
+window.addEventListener("resize", () => updateFraming());
+updateFraming(true);
 
 fetch("data/shipments.json", { cache: "no-store" })
   .then(response => { if (!response.ok) throw new Error(`Data request failed: ${response.status}`); return response.json(); })
@@ -655,8 +548,9 @@ fetch("data/shipments.json", { cache: "no-store" })
     dataset = data;
     const coverageIncomplete = renderCoverage(data.dataCoverage);
     populateFilters(data.packages);
-    await styleReady;
+    updateRouteAppearance();
     applyFilters();
+    updateFraming(true);
     if (data.generatedAt) {
       const updated = `Updated ${new Date(data.generatedAt).toLocaleDateString(undefined, { dateStyle: "medium" })}`;
       el("updated-at").textContent = coverageIncomplete ? `${updated} · Coverage incomplete` : updated;
@@ -672,6 +566,10 @@ fetch("data/shipments.json", { cache: "no-store" })
     el("route-opacity").addEventListener("input", setRouteOpacity);
     el("reset-globe").addEventListener("click", resetGlobe);
     el("international-status").addEventListener("click", focusInternational);
+    el("zoom-in").addEventListener("click", () => globe.zoomBy(.85));
+    el("zoom-out").addEventListener("click", () => globe.zoomBy(1.18));
+    el("globe-popup-close").addEventListener("click", closePopup);
+    document.querySelectorAll("[data-light]").forEach(button => button.addEventListener("click", () => setLight(button.dataset.light)));
     el("reset-filters").addEventListener("click", () => {
       stopTimeline();
       timelineCumulative = false;

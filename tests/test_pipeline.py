@@ -193,7 +193,7 @@ def test_checked_in_dataset_respects_public_schema():
     assert "$" not in json.dumps(payload["financialHighlights"])
     assert payload["dataCoverage"] == json.loads((ROOT / "data" / "public-coverage.json").read_text(encoding="utf-8"))
     assert payload["dataCoverage"]["status"] == "complete"
-    assert payload["dataCoverage"]["asOf"] == "2026-08-20"
+    assert payload["dataCoverage"]["asOf"] == "2026-11-06"
     assert payload["dataCoverage"]["knownGaps"] == []
 
 
@@ -213,23 +213,20 @@ def test_pages_workflows_deploy_both_pushes_and_scheduled_refreshes():
     assert "exit 1" in refresh
 
 
-def test_maplibre_globe_assets_and_projection_are_pinned():
+def test_three_globe_assets_are_pinned_and_maplibre_is_gone():
     html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
-    javascript = (ROOT / "public" / "app.js").read_text(encoding="utf-8")
-    assert 'href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css"' in html
-    assert 'src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"' in html
-    assert 'style: "https://tiles.openfreemap.org/styles/dark"' in javascript
-    assert 'map.setProjection({ type: "globe" })' in javascript
-    assert 'map.setSky({' in javascript
-    assert "function greatCircleGeometry" in javascript
-    assert "function splitAntimeridian" in javascript
-    assert "segments.push([[boundary * -1, crossingLat], current]);" in javascript
+    globe = (ROOT / "public" / "globe.js").read_text(encoding="utf-8")
+    assert '"three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"' in html
+    assert "maplibre" not in html.lower()
+    assert "three-globe@2.45.0/example" in globe
+    assert "function buildArc" in globe
+    assert "uOriginFade" in globe
 
 
 def test_north_shore_nostalgia_store_link_is_present():
     html = (ROOT / "public" / "index.html").read_text(encoding="utf-8")
     assert "North Shore Nostalgia Sales Atlas" in html
-    assert "custom MapLibre mapping skill I created" in html
+    assert "rendered with three.js" in html
     assert 'href="https://ebay.us/m/Wg29dT"' in html
     assert 'rel="noopener"' in html
 
@@ -251,16 +248,15 @@ def test_dashboard_includes_filter_aware_sales_records():
     assert 'California' in javascript
     assert 'id="reset-globe"' in html
     assert 'has("preview")' in javascript
-    assert 'href="styles.css?v=atlas-2"' in html
-    assert 'src="app.js?v=atlas-2"' in html
+    assert 'href="styles.css?v=atlas-3"' in html
+    assert 'src="app.js?v=atlas-3"' in html
     assert 'id="data-coverage"' in html
     assert 'id="coverage-detail"' in html
     assert "function renderCoverage(coverage)" in javascript
     assert "Coverage incomplete" in javascript
     assert 'id="international-status"' in html
-    assert 'source: "onward-routes"' in javascript
-    assert 'source: "highlight-routes"' in javascript
-    assert 'source: "highlight-onward-routes"' in javascript
+    assert "globe.setRoutes({ base, onwardArcs, highlight, highlightOnwardArcs });" in javascript
+    assert 'id="timeline-strip"' in html
     assert 'fetch("data/shipments.json", { cache: "no-store" })' in javascript
 
 
@@ -269,9 +265,9 @@ def test_region_filter_can_highlight_or_isolate_and_reports_package_count():
     javascript = (ROOT / "public" / "app.js").read_text(encoding="utf-8")
     for control_id in ("region-highlight", "region-isolate", "region-status"):
         assert f'id="{control_id}"' in html
-    assert html.index('id="international-status"') < html.index('class="map-wrap"')
+    assert html.index('id="international-status"') < html.index('class="bottom-dock"')
     assert 'regionViewMode === "isolate"' in javascript
-    assert 'render(visiblePackages, region === "all" ? null : region);' in javascript
+    assert 'render(visiblePackages, region === "all" ? null : region, timelineCumulative && month !== "all" ? month : null);' in javascript
     assert '${regionLabel} · ${packageLabel(regionPackages.length)}' in javascript
 
 
@@ -280,10 +276,9 @@ def test_route_lines_can_be_faded_hidden_and_are_thinner_by_default():
     javascript = (ROOT / "public" / "app.js").read_text(encoding="utf-8")
     for control_id in ("toggle-routes", "route-opacity", "route-opacity-value"):
         assert f'id="{control_id}"' in html
-    assert 'value="42"' in html
+    assert 'value="30"' in html
     assert "function updateRouteAppearance()" in javascript
-    assert 'map.setPaintProperty(layerId, "line-opacity"' in javascript
-    assert '"line-width": 1.1' in javascript
+    assert "globe.setRouteStrength(routesVisible ? routeOpacity : 0);" in javascript
 
 
 def test_console_filter_updates_the_complete_dashboard_view():
@@ -294,3 +289,20 @@ def test_console_filter_updates_the_complete_dashboard_view():
     assert 'packageConsoleIds(pkg).has(consoleId)' in javascript
     assert 'el("filter-console").addEventListener("change", applyFilters);' in javascript
     assert 'el("filter-console").value = "all";' in javascript
+
+
+def test_multi_item_orders_inherit_the_address_from_their_summary_row(tmp_path):
+    columns = "Order Number,Ship To City,Ship To State,Ship To Country,Item Title,Quantity,Sale Date\n"
+    source = tmp_path / "orders.csv"
+    source.write_text(
+        columns
+        + "11-11111-11111,Tigard,OR,United States,,,Oct-03-26\n"
+        + "11-11111-11111,,,,First Game,1,\n"
+        + "11-11111-11111,,,,Second Game,1,\n",
+        encoding="utf-8",
+    )
+    packages = group_packages(read_ebay_csv(source))
+    assert len(packages) == 1
+    assert packages[0].city == "Tigard"
+    assert packages[0].month == "2026-10"
+    assert packages[0].game_count == 2

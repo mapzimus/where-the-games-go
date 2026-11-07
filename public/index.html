@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="A privacy-conscious spatial analysis of real eBay sales and shipment destinations from North Shore Nostalgia." />
     <meta property="og:title" content="North Shore Nostalgia Sales Atlas" />
-    <meta property="og:description" content="An interactive globe mapping the geographic reach, shipment patterns, and console sales of an independent retro-game business." />
+    <meta property="og:description" content="An interactive 3D Earth mapping the geographic reach, shipment patterns, and console sales of an independent retro-game business." />
     <meta property="og:type" content="website" />
     <meta property="og:image" content="social-preview.png" />
     <meta name="twitter:card" content="summary_large_image" />
@@ -13,49 +13,29 @@
     <link rel="icon" href="data:," />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.css" />
-    <link rel="stylesheet" href="styles.css?v=atlas-2" />
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=atlas-3" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
   </head>
   <body>
+    <canvas id="globe-canvas" aria-label="Interactive 3D Earth showing generalized package destinations"></canvas>
     <main class="shell">
       <header class="hero">
-        <div>
-          <p class="eyebrow">INDEPENDENT RETRO-GAME COMMERCE · SALEM, MASSACHUSETTS</p>
-          <h1>North Shore Nostalgia <em>Sales Atlas</em></h1>
-          <p class="lede">A spatial analysis of several years of real eBay sales from North Shore Nostalgia. The atlas traces generalized shipment destinations from Salem to reveal the business’s geographic reach without publishing buyer addresses.</p>
-        </div>
-        <div class="hero-mark" aria-hidden="true">
-          <span>42.52° N</span>
-          <div class="orbit"><i></i></div>
-          <span>70.90° W</span>
-        </div>
+        <h1>North Shore Nostalgia Sales Atlas</h1>
+        <p class="lede">Every light on this planet is a town that received a package from one eBay shop in Salem, Massachusetts. Locations stop at the city level, so buyers’ addresses stay private.</p>
+        <a class="hero-link" href="#explore">Explore the orders</a>
       </header>
 
-      <section class="stats" aria-label="Shipment summary">
-        <article><strong id="stat-packages">—</strong><span>known orders mapped</span></article>
-        <article><strong id="stat-cities">—</strong><span>destination communities</span></article>
-        <article><strong id="stat-miles">—</strong><span>estimated route miles</span></article>
-        <article><strong id="stat-regions">—</strong><span>geographic regions reached</span></article>
-      </section>
-
-      <section class="coverage-notice" id="data-coverage" aria-labelledby="coverage-title" hidden>
-        <div>
-          <p class="section-kicker">DATA COVERAGE</p>
-          <h2 id="coverage-title">Known export gap</h2>
-        </div>
-        <div>
-          <p id="coverage-detail">Some orders are not represented in the current dataset.</p>
-          <p class="coverage-meta" id="coverage-meta"></p>
-        </div>
-      </section>
-
-      <section class="map-panel">
-        <div class="map-toolbar">
-          <div>
-            <p class="section-kicker">SHIPMENT GEOGRAPHY</p>
-            <h2>Explore the order network</h2>
-          </div>
+      <section class="stage" id="explore" aria-labelledby="stage-title">
+        <div class="rail">
+          <h2 id="stage-title">Explore the orders</h2>
           <div class="filters">
             <label>Period
               <select id="filter-month"><option value="all">All periods</option></select>
@@ -66,62 +46,82 @@
             <label>Platform
               <select id="filter-console"><option value="all">All platforms</option></select>
             </label>
-            <div class="region-view-control">
-              <span>Region view</span>
-              <div class="region-actions" role="group" aria-label="Region display mode">
+            <label>Search inventory
+              <input id="filter-title" type="search" placeholder="Title or franchise" />
+            </label>
+            <div class="control">
+              <span>Selected region</span>
+              <div class="segmented" role="group" aria-label="Region display mode">
                 <button id="region-highlight" type="button" aria-pressed="true">Highlight</button>
                 <button id="region-isolate" type="button" aria-pressed="false">Isolate</button>
               </div>
-            </div>
-            <div class="region-summary-control">
-              <span>Selection</span>
               <output id="region-status" aria-live="polite">All destinations</output>
             </div>
-            <label class="search-label">Search inventory
-              <input id="filter-title" type="search" placeholder="Title or franchise" />
-            </label>
-            <div class="timeline-control">
-              <span>Playback</span>
-              <div class="timeline-actions">
-                <button id="play-timeline" type="button" aria-pressed="false">Animate by month</button>
-                <output id="timeline-status" aria-live="polite">All periods</output>
-              </div>
-            </div>
-            <div class="routes-control">
-              <span>Route visibility</span>
+            <div class="control">
+              <span>Route lines</span>
               <div class="routes-actions">
                 <button id="toggle-routes" type="button" aria-pressed="true">Hide lines</button>
-                <input id="route-opacity" type="range" min="10" max="100" value="42" aria-label="Route line opacity" />
-                <output id="route-opacity-value" for="route-opacity">42%</output>
+                <input id="route-opacity" type="range" min="10" max="100" value="30" aria-label="Route line opacity" />
+                <output id="route-opacity-value" for="route-opacity">30%</output>
               </div>
             </div>
-            <div class="international-control">
-              <span>International routes</span>
-              <button class="international-status" id="international-status" type="button" title="Tour mapped international destinations" hidden></button>
-            </div>
+            <button class="international-status" id="international-status" type="button" title="Tour mapped international destinations" hidden></button>
             <button id="reset-filters" type="button">Clear filters</button>
           </div>
         </div>
-        <div class="map-wrap">
-          <div id="map" aria-label="Interactive 3D globe of generalized package destinations"></div>
-          <div class="globe-badge" aria-hidden="true">INTERACTIVE GLOBE · DRAG TO ROTATE</div>
-          <button class="map-reset" id="reset-globe" type="button">Reset view</button>
+
+        <div class="readout" aria-label="Shipment summary">
+          <p><strong id="stat-packages">—</strong> known orders mapped</p>
+          <p><strong id="stat-items">—</strong> items sold</p>
+          <p><strong id="stat-cities">—</strong> destination communities</p>
+          <p><strong id="stat-miles">—</strong> estimated route miles</p>
+          <p><strong id="stat-regions">—</strong> geographic regions reached</p>
+          <div class="coverage-notice" id="data-coverage" hidden>
+            <h3 id="coverage-title">Known export gap</h3>
+            <p id="coverage-detail">Some orders are not represented in the current dataset.</p>
+            <p class="coverage-meta" id="coverage-meta"></p>
+          </div>
+        </div>
+
+        <div class="view-tools">
+          <div class="segmented" role="group" aria-label="Sunlight on the globe">
+            <button data-light="day" type="button" aria-pressed="false">Day</button>
+            <button data-light="dusk" type="button" aria-pressed="true">Dusk</button>
+            <button data-light="night" type="button" aria-pressed="false">Night</button>
+          </div>
+          <div class="segmented" role="group" aria-label="Globe zoom">
+            <button id="zoom-in" type="button" aria-label="Zoom in">+</button>
+            <button id="zoom-out" type="button" aria-label="Zoom out">−</button>
+          </div>
+          <button id="reset-globe" type="button">Reset view</button>
+        </div>
+
+        <div class="bottom-dock">
           <div class="map-key">
-            <span><i class="key-origin"></i> Dispatch origin</span>
+            <span><i class="key-origin"></i> Salem, where orders ship from</span>
             <span><i class="key-destination"></i> Order destination</span>
             <span><i class="key-route"></i> Estimated route</span>
-            <span><i class="key-selected"></i> Selected geography</span>
-            <span><i class="key-hub"></i> eBay processing hub</span>
-            <span><i class="key-onward"></i> International continuation</span>
+            <span><i class="key-selected"></i> Selected region</span>
+            <span><i class="key-hub"></i> eBay shipping hub</span>
+            <span><i class="key-onward"></i> International leg</span>
           </div>
-          <div id="empty-state" hidden>No shipments match the current filters.</div>
+          <div class="timeline">
+            <button id="play-timeline" type="button" aria-pressed="false">Play by month</button>
+            <div class="timeline-strip" id="timeline-strip" role="group" aria-label="Orders per month. Choose a month to filter the globe."></div>
+            <output id="timeline-status" aria-live="polite">All periods</output>
+          </div>
         </div>
+
+        <div class="globe-popup" id="globe-popup" hidden>
+          <button id="globe-popup-close" type="button" aria-label="Close details">×</button>
+          <div id="globe-popup-body"></div>
+        </div>
+        <div id="empty-state" hidden>No shipments match the current filters.</div>
       </section>
 
       <section class="records" aria-labelledby="records-title">
         <div class="records-heading">
           <div>
-            <p class="section-kicker">BUSINESS PROFILE</p>
             <h2 id="records-title">Sales and distribution patterns</h2>
           </div>
           <p>Activity and destination metrics follow the active filters. Aggregate sales rankings summarize the available sales export.</p>
@@ -197,15 +197,13 @@
 
       <section class="story-grid">
         <article class="farthest-card">
-          <p class="section-kicker">MAXIMUM DISTANCE</p>
           <p class="distance" id="farthest-distance">— mi</p>
           <h2 id="farthest-place">No matching destination</h2>
           <p id="farthest-title">The longest matching shipment will appear here.</p>
         </article>
         <article class="method-card">
-          <p class="section-kicker">METHOD &amp; IMPLEMENTATION</p>
-          <h2>A custom globe workflow designed for route data.</h2>
-          <p>I rendered the project with <strong>Globe Maps</strong>, a custom MapLibre mapping skill I created for three-dimensional route visualization. It guided the globe projection, atmospheric treatment, style-load sequencing, densified great-circle geometry, selection behavior, and antimeridian handling that keep each route attached to the sphere.</p>
+          <h2>How the globe is built</h2>
+          <p>The whole scene is rendered with three.js: custom shaders blend daylight, city lights, cloud shadow, sun glint on water, and atmospheric haze. Each route is a thin great-circle arc that fades near Salem, so the destinations read first and the lines stay in the background.</p>
           <p>A Python pipeline groups the eBay orders, generalizes destinations to city and town centroids, geocodes them, calculates estimated great-circle distance, and publishes only allow-listed fields. International orders are shown as two-stage journeys when the source export includes both the domestic handoff and final destination.</p>
           <a class="store-link" href="https://ebay.us/m/Wg29dT" target="_blank" rel="noopener">Visit North Shore Nostalgia on eBay</a>
         </article>
@@ -214,12 +212,11 @@
       <footer>
         <span>NORTH SHORE NOSTALGIA</span>
         <p>Spatial analysis and visualization by Maxwell Howe · Real North Shore Nostalgia sales data</p>
-        <p>Basemap © OpenFreeMap and OpenStreetMap contributors</p>
+        <p>Earth textures from the three-globe project. Geocoding by OpenStreetMap Nominatim.</p>
         <p id="updated-at">Data not yet generated</p>
       </footer>
     </main>
 
-    <script src="https://unpkg.com/maplibre-gl@5.6.1/dist/maplibre-gl.js"></script>
-    <script src="app.js?v=atlas-2"></script>
+    <script type="module" src="app.js?v=atlas-3"></script>
   </body>
 </html>

@@ -64,6 +64,7 @@ MILITARY_DESTINATIONS = {
 
 CITY_ALIASES = {
     ("cottonwd shrs", "TX", "US"): ("Cottonwood Shores", "TX", "US"),
+    ("rch cucamonga", "CA", "US"): ("Rancho Cucamonga", "CA", "US"),
 }
 
 
@@ -148,9 +149,23 @@ def read_ebay_csv(path: Path) -> list[LineItem]:
     if "Transaction creation date" in header:
         return read_transaction_rows(header, rows[header_index + 1:])
 
+    # Multi-item orders put the address on a summary row and the titles on item
+    # rows with blank address fields, so item rows inherit it from their order.
+    address_fields = ("Ship To City", "Ship To State", "Ship To Country", "Buyer City", "Buyer State", "Buyer Country", "eBay International Shipping", "Sale Date", "Paid On Date")
+    order_details: dict[str, dict] = {}
+    for values in rows[header_index + 1:]:
+        row = dict(zip(header, values))
+        order = clean(row.get("Order Number"))
+        if order and clean(row.get("Ship To City")):
+            order_details.setdefault(order, row)
+
     result: list[LineItem] = []
     for index, values in enumerate(rows[header_index + 1:], start=1):
         row = dict(zip(header, values))
+        details = order_details.get(clean(row.get("Order Number")), {})
+        for name in address_fields:
+            if not clean(row.get(name)):
+                row[name] = details.get(name, "")
         ship_city = clean(row.get("Ship To City"))
         ship_region = clean(row.get("Ship To State"))
         title = clean(row.get("Item Title"))
@@ -170,6 +185,7 @@ def read_ebay_csv(path: Path) -> list[LineItem]:
             code = buyer_code if has_final_destination else ship_code
             name = buyer_country if has_final_destination else ship_name
             region = (buyer_region or buyer_country) if has_final_destination else ship_region
+            city, region, code = CITY_ALIASES.get((city.casefold(), region.upper(), code), (city, region, code))
         order_key = clean(row.get("Order Number") or row.get("Sales Record Number"))
         if not order_key:
             order_key = f"csv-row-{index}"
@@ -326,6 +342,8 @@ class CityResolver:
         key = self.key(city, region, country_code)
         cached = self.cache.get(key)
         if cached:
+            if cached.get("missing"):
+                return None
             return float(cached["lat"]), float(cached["lng"])
         if self.offline:
             return None
