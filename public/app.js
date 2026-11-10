@@ -1,4 +1,4 @@
-import { createGlobe, PALETTE } from "./globe.js?v=atlas-3";
+import { createGlobe, PALETTE } from "./globe.js?v=atlas-4";
 
 function el(id) { return document.getElementById(id); }
 const fmt = new Intl.NumberFormat("en-US");
@@ -507,7 +507,7 @@ async function focusInternational() {
   internationalFocusIndex = (internationalFocusIndex + 1) % visibleInternational.length;
   const pkg = visibleInternational[internationalFocusIndex];
   closePopup();
-  await globe.flyTo(pkg.lng, pkg.lat, .72, 1400);
+  await globe.flyTo(pkg.lng, pkg.lat, .5, 1400);
   openPopup(pkg.lng, pkg.lat, popup(pkg));
 }
 

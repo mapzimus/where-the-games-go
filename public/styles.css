@@ -78,6 +78,7 @@ button:disabled { cursor: default; opacity: .45; }
 .key-destination { background: var(--amber); }
 .key-hub { background: var(--rose); }
 .map-key .key-route, .map-key .key-selected, .map-key .key-onward { width: 16px; height: 2px; border-radius: 0; vertical-align: middle; }
+.key-hint { margin-left: auto; color: var(--ink); }
 .key-route { background: var(--route); opacity: .65; }
 .key-selected { background: var(--cyan); }
 .key-onward { background: repeating-linear-gradient(90deg, var(--violet) 0 4px, transparent 4px 7px); }

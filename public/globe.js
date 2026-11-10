@@ -25,6 +25,8 @@ const LIGHT_OFFSETS = { day: 12, dusk: 84, night: 180 };
 const SUN_LATITUDE = 12;
 
 const ATMOSPHERE_RADIUS = 1.16;
+const CLOSEST_DISTANCE = 1.3;
+const MAX_ZOOM = 1.5;
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
 export function lngLatToVector(lng, lat, radius = 1) {
@@ -105,7 +107,7 @@ const pointVertex = /* glsl */`
   void main() {
     vColor = aColor;
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    gl_PointSize = aSize * uPixelRatio * clamp(2.9 / uDistance, 0.72, 2.2);
+    gl_PointSize = aSize * uPixelRatio * clamp(2.9 / uDistance, 0.72, 1.5);
     gl_Position = projectionMatrix * mv;
   }
 `;
@@ -344,7 +346,7 @@ export function createGlobe({ canvas, startLng = -92, startLat = 34, onPick, onF
   renderer.setClearColor(0x03050b);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(32, 1, .1, 200);
+  const camera = new THREE.PerspectiveCamera(32, 1, .02, 200);
   camera.position.copy(lngLatToVector(startLng, startLat, 3));
 
   const controls = new OrbitControls(camera, canvas);
@@ -354,8 +356,8 @@ export function createGlobe({ canvas, startLng = -92, startLat = 34, onPick, onF
   controls.dampingFactor = .07;
   controls.minPolarAngle = .12;
   controls.maxPolarAngle = Math.PI - .12;
-  // Leave vertical swipes to the page so phones can still scroll past the globe.
-  canvas.style.touchAction = "pan-y";
+  controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: null };
+  canvas.style.touchAction = "none";
 
   const sun = { value: new THREE.Vector3() };
   const sunTarget = new THREE.Vector3();
@@ -436,6 +438,7 @@ export function createGlobe({ canvas, startLng = -92, startLat = 34, onPick, onF
   const viewTarget = { distance: 2.2, offsetX: 0, offsetY: 0 };
   let zoom = 1;
   let zoomTarget = 1;
+  let interactive = false;
   let flight = null;
   let reveal = null;
   let width = 1;
@@ -477,11 +480,46 @@ export function createGlobe({ canvas, startLng = -92, startLat = 34, onPick, onF
     return best;
   };
 
+  const clampZoom = value => THREE.MathUtils.clamp(value, CLOSEST_DISTANCE / viewTarget.distance, MAX_ZOOM);
+
+  // Zooming in leans toward the point under the cursor, so people can fly to a place.
+  const leanToward = (x, y, amount) => {
+    const ray = new THREE.Vector3(x / width * 2 - 1, 1 - y / height * 2, .5).unproject(camera).sub(camera.position).normalize();
+    const along = -camera.position.dot(ray);
+    const closest = camera.position.clone().addScaledVector(ray, along);
+    if (closest.lengthSq() >= 1) return;
+    const hit = camera.position.clone().addScaledVector(ray, along - Math.sqrt(1 - closest.lengthSq())).normalize();
+    const length = camera.position.length();
+    camera.position.normalize().lerp(hit, amount).setLength(length);
+  };
+
   let press = null;
+  const touches = new Map();
+  let pinchSpan = 0;
+  const touchSpan = () => {
+    const [a, b] = [...touches.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
   canvas.addEventListener("pointerdown", event => {
     press = { x: event.clientX, y: event.clientY };
     flight = null;
+    if (event.pointerType === "touch") {
+      touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      if (touches.size === 2) pinchSpan = touchSpan();
+      if (touches.size > 1) press = null;
+    }
   });
+  canvas.addEventListener("pointermove", event => {
+    if (!touches.has(event.pointerId)) return;
+    touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (touches.size !== 2) return;
+    const span = touchSpan();
+    zoomTarget = clampZoom(zoomTarget * pinchSpan / Math.max(span, 1));
+    pinchSpan = span;
+  });
+  const releaseTouch = event => { touches.delete(event.pointerId); };
+  canvas.addEventListener("pointerup", releaseTouch);
+  canvas.addEventListener("pointercancel", releaseTouch);
   canvas.addEventListener("pointerup", event => {
     if (!press || Math.hypot(event.clientX - press.x, event.clientY - press.y) > 6) return;
     onPick?.(nearest(event.clientX, event.clientY, event.pointerType === "touch" ? 24 : 14));
@@ -491,9 +529,14 @@ export function createGlobe({ canvas, startLng = -92, startLat = 34, onPick, onF
     canvas.style.cursor = nearest(event.clientX, event.clientY, 14) ? "pointer" : "grab";
   });
   canvas.addEventListener("wheel", event => {
-    if (!event.ctrlKey) return;
+    // Scrolling down at the normal view leaves the globe, so the page never traps the wheel.
+    if (event.deltaY > 0 && zoomTarget >= 1 && !event.ctrlKey) return;
     event.preventDefault();
-    zoomTarget = THREE.MathUtils.clamp(zoomTarget * (event.deltaY > 0 ? 1.08 : .92), .55, 1.5);
+    flight = null;
+    const pixels = event.deltaY * (event.deltaMode === 1 ? 32 : 1);
+    const next = clampZoom(zoomTarget * Math.exp(pixels * (event.ctrlKey ? .01 : .0016)));
+    if (next < zoomTarget) leanToward(event.clientX, event.clientY, Math.min(.08, (zoomTarget - next) * .9));
+    zoomTarget = event.deltaY > 0 && !event.ctrlKey ? Math.min(next, 1) : next;
   }, { passive: false });
 
   const flyTo = (lng, lat, zoomLevel = zoomTarget, duration = 1400) => new Promise(resolve => {
@@ -526,10 +569,10 @@ export function createGlobe({ canvas, startLng = -92, startLat = 34, onPick, onF
 
     const ease = 1 - Math.exp(-delta * 5);
     Object.keys(view).forEach(key => { view[key] += (viewTarget[key] - view[key]) * ease; });
-    zoom += (zoomTarget - zoom) * ease;
-    const distance = Math.max(1.32, view.distance * zoom);
+    zoom += ((interactive ? zoomTarget : 1) - zoom) * ease;
+    const distance = Math.max(CLOSEST_DISTANCE, view.distance * zoom);
     camera.position.setLength(distance);
-    controls.rotateSpeed = THREE.MathUtils.clamp((distance - 1) / 2.4, .1, .9);
+    controls.rotateSpeed = THREE.MathUtils.clamp((distance - 1) / 2.6, .03, .9);
     controls.update();
     camera.position.setLength(distance);
     camera.setViewOffset(width, height, -view.offsetX * width, -view.offsetY * height, width, height);
@@ -629,10 +672,11 @@ export function createGlobe({ canvas, startLng = -92, startLat = 34, onPick, onF
       Object.assign(view, next);
     },
     setInteractive(active) {
+      interactive = active;
       canvas.style.pointerEvents = active ? "auto" : "none";
     },
     zoomBy(factor) {
-      zoomTarget = THREE.MathUtils.clamp(zoomTarget * factor, .55, 1.5);
+      zoomTarget = clampZoom(zoomTarget * factor);
     },
     resetZoom() {
       zoomTarget = 1;

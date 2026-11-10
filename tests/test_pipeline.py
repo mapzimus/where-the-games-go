@@ -248,8 +248,8 @@ def test_dashboard_includes_filter_aware_sales_records():
     assert 'California' in javascript
     assert 'id="reset-globe"' in html
     assert 'has("preview")' in javascript
-    assert 'href="styles.css?v=atlas-3"' in html
-    assert 'src="app.js?v=atlas-3"' in html
+    assert 'href="styles.css?v=atlas-4"' in html
+    assert 'src="app.js?v=atlas-4"' in html
     assert 'id="data-coverage"' in html
     assert 'id="coverage-detail"' in html
     assert "function renderCoverage(coverage)" in javascript
